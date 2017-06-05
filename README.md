@@ -1,4 +1,5 @@
-Unity-ARKit-Plugin
+**Unity-ARKit-Plugin
+**
 
 This is a native plugin that enables using all the functionality of the ARKit SDK simply within your Unity projects for
 iOS.  The plugin exposes ARKit SDK's world tracking capabilities, rendering the camera video input, plane detection and
@@ -72,7 +73,3 @@ ARKit useful components:
 You should be able to build the UnityARKitScene.unity to iOS to get a taste of what ARKit is capable of.  It demostrates all the basic functionality of the ARKit in this scene.  
 
 Please feel free to extend the plugin and send pull requests. You may also provide feedback if you would like improvements or want to suggest changes.  Happy coding and have fun!
-
-
-
-
