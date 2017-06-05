@@ -1,5 +1,5 @@
-**Unity-ARKit-Plugin
-**
+# Unity-ARKit-Plugin #
+
 
 This is a native plugin that enables using all the functionality of the ARKit SDK simply within your Unity projects for
 iOS.  The plugin exposes ARKit SDK's world tracking capabilities, rendering the camera video input, plane detection and
@@ -9,15 +9,15 @@ to the underlying technology.
 
 The plugin is open sourced and is released under the MIT license (see LICENSE file in this folder)
 
-Requirements:
+## Requirements: ##
 Unity v5.6.1p1+
 iOS 11+
 Xcode beta 9 with latest iOS SDK that contains ARKit Framework
 iOS device that supports ARKit
 
 
-How to use this code drop:
-
+## How to use this code drop:
+ ##
 The code drop is a Unity project that you can load up in any Unity version that is later than v5.6.1p1.  The Unity
 project contains the plugin sources and some example scenes and components that you may use in your own projects.  
 
@@ -28,8 +28,12 @@ Here is a summary of the important files in the plugin:
 
 "/Assets/Plugins/iOS/UnityARKit/NativeInterface/UnityARSessionNativeInterface.cs" - this the scripting API to the ARKit, and provides the glue to the native code
 
-	This contains the following APIs:
+This contains the following APIs:
 	    
+
+```
+#!C#
+
 	    public void RunWithConfigAndOptions(ARKitWorldTackingSessionConfiguration config, UnityARSessionRunOption runOptions)
 
 	    public void RunWithConfig(ARKitWorldTackingSessionConfiguration config)
@@ -38,24 +42,32 @@ Here is a summary of the important files in the plugin:
 
 	    public List<ARHitTestResult> HitTest(ARPoint point, ARHitTestResultType types)
 
-		public ARTextureHandles GetARVideoTextureHandles()
+	    public ARTextureHandles GetARVideoTextureHandles()
 
-		public float GetARAmbientIntensity()
+	    public float GetARAmbientIntensity()
 
-		public int GetARTrackingQuality()  
+	    public int GetARTrackingQuality()  
+```
+
 
   
-    It also contains events that you can provide these delegates for: 
+It also contains events that you can provide these delegates for: 
 
-    	public delegate void ARFrameUpdate(UnityARCamera camera)
+
+```
+#!C#
+
+        public delegate void ARFrameUpdate(UnityARCamera camera)
 
     	public delegate void ARAnchorAdded(ARPlaneAnchor anchorData)
 
-		public delegate void ARAnchorUpdated(ARPlaneAnchor anchorData)
+        public delegate void ARAnchorUpdated(ARPlaneAnchor anchorData)
 
-		public delegate void ARAnchorRemoved(ARPlaneAnchor anchorData)
+        public delegate void ARAnchorRemoved(ARPlaneAnchor anchorData)
 
-		public delegate void ARSessionFailed(string error)
+        public delegate void ARSessionFailed(string error)
+```
+
  
 
 "/Assets/Plugins/iOS/UnityARKit/NativeInterface/AR*.cs" - these are the scripting API equivalents of data structures exposed by ARKit
@@ -64,7 +76,7 @@ Here is a summary of the important files in the plugin:
 
 "/Assets/Plugins/iOS/UnityARKit/Editor/UnityARBuildPostprocessor.cs" - this is an editor script that runs at build time on iOS 
 
-ARKit useful components:
+## ARKit useful components: ##
 
 "/Assets/Plugins/iOS/UnityARKit/UnityARCameraManager.cs" - this component should be placed on a gameobject in the scene that references the camera that you want to control via ARKit, and it will position and rotate the camera as well as provide the correct projection matrix to it based on updates from ARKit.  This component also has the code to initialize an ARKit session.
 
