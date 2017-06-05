@@ -16,8 +16,8 @@ The plugin is open sourced and is released under the MIT license (see LICENSE fi
 * iOS device that supports ARKit
 
 
-## How to use this code drop:
- ##
+## How to use this code drop:##
+
 The code drop is a Unity project that you can load up in any Unity version that is later than v5.6.1p1.  The Unity
 project contains the plugin sources and some example scenes and components that you may use in your own projects.  
 
