@@ -10,10 +10,10 @@ to the underlying technology.
 The plugin is open sourced and is released under the MIT license (see LICENSE file in this folder)
 
 ## Requirements: ##
-Unity v5.6.1p1+
-iOS 11+
-Xcode beta 9 with latest iOS SDK that contains ARKit Framework
-iOS device that supports ARKit
+* Unity v5.6.1p1+
+* iOS 11+
+* Xcode beta 9 with latest iOS SDK that contains ARKit Framework
+* iOS device that supports ARKit
 
 
 ## How to use this code drop:
