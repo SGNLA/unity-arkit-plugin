@@ -84,4 +84,6 @@ It also contains events that you can provide these delegates for:
 
 You should be able to build the UnityARKitScene.unity to iOS to get a taste of what ARKit is capable of.  It demostrates all the basic functionality of the ARKit in this scene.  
 
+See TUTORIAL.txt in this project for more detailed steps on setting up a project step by step.
+
 Please feel free to extend the plugin and send pull requests. You may also provide feedback if you would like improvements or want to suggest changes.  Happy coding and have fun!
