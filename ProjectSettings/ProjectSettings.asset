@@ -11,7 +11,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Unity Technologies
-  productName: Native Rendering Plugin Example
+  productName: Unity ARKit Plugin
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13333334, g: 0.17254902, b: 0.21176471, a: 1}
@@ -140,7 +140,7 @@ PlayerSettings:
     Android: com.Company.ProductName
     Standalone: unity.Unity Technologies.Native Rendering Plugin Example
     Tizen: com.Company.ProductName
-    iOS: com.Company.ProductName
+    iOS: com.unity.arkitscene
     tvOS: com.Company.ProductName
   buildNumber:
     iOS: 0
@@ -212,9 +212,9 @@ PlayerSettings:
   metalAPIValidation: 0
   iOSRenderExtraFrameOnPause: 1
   appleDeveloperTeamID: 
-  iOSManualSigningProvisioningProfileID: ff0db01e-4b66-4a5e-a051-5be2df34befd
+  iOSManualSigningProvisioningProfileID: 
   tvOSManualSigningProvisioningProfileID: 
-  appleEnableAutomaticSigning: 2
+  appleEnableAutomaticSigning: 1
   AndroidTargetDevice: 0
   AndroidSplashScreenScale: 0
   androidSplashScreen: {fileID: 0}
