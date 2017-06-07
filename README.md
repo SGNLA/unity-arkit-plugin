@@ -13,7 +13,7 @@ The plugin is open sourced and is released under the MIT license (see LICENSE fi
 * Unity v5.6.1p1+
 * iOS 11+
 * Xcode beta 9 with latest iOS SDK that contains ARKit Framework
-* iOS device that supports ARKit
+* iOS device that supports ARKit (iPhone 6S or later, iPad (2017) or later)
 
 
 ## How to use this code drop:##
