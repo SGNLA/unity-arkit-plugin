@@ -214,6 +214,9 @@ static float s_ShaderScale;
 static const vector_float3* s_PointCloud;
 static NSUInteger s_PointCloudSize;
 
+static float unityCameraNearZ;
+static float unityCameraFarZ;
+
 @interface UnityARSession : NSObject <ARSessionDelegate>
 {
 @public
@@ -260,7 +263,7 @@ static CGAffineTransform s_CurAffineTransform;
     CGRect nativeBounds = [[UIScreen mainScreen] nativeBounds];
     CGSize nativeSize = GetAppController().rootView.bounds.size;
 
-    matrix_float4x4 projectionMatrix = [frame.camera projectionMatrixWithViewportSize:nativeSize orientation:[[UIApplication sharedApplication] statusBarOrientation] zNear:.01 zFar:30];
+    matrix_float4x4 projectionMatrix = [frame.camera projectionMatrixWithViewportSize:nativeSize orientation:[[UIApplication sharedApplication] statusBarOrientation] zNear:(CGFloat)unityCameraNearZ zFar:(CGFloat)unityCameraFarZ];
 
     s_CurAffineTransform = [frame displayTransformWithViewportSize:nativeSize orientation:[[UIApplication sharedApplication] statusBarOrientation]];
 
@@ -446,6 +449,8 @@ extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallba
     nativeSession->_anchorUpdatedCallback = anchorUpdatedCallback;
     nativeSession->_anchorRemovedCallback = anchorRemovedCallback;
     nativeSession->_arSessionFailedCallback = sessionFailed;
+    unityCameraNearZ = .01;
+    unityCameraFarZ = 30;
     return (__bridge_retained void*)nativeSession;
 }
 
@@ -505,6 +510,12 @@ extern "C" void StopSession(void* nativeSession)
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
     [session teardownMetal];
+}
+
+extern "C" void SetCameraNearFar (float nearZ, float farZ)
+{
+    unityCameraNearZ = nearZ;
+    unityCameraFarZ = farZ;
 }
 
 extern "C" struct HitTestResult
