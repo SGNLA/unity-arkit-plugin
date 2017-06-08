@@ -237,7 +237,10 @@ namespace UnityEngine.XR.iOS {
         [DllImport("__Internal")]
         private static extern bool GetARPointCloud (ref IntPtr verts, ref uint vertLength);
 
-	    public UnityARSessionNativeInterface()
+		[DllImport("__Internal")]
+		private static extern void SetCameraNearFar (float nearZ, float farZ);
+
+		public UnityARSessionNativeInterface()
 		{
 #if !UNITY_EDITOR
 	        m_NativeARSession = unity_CreateNativeARSession(_frame_update, _anchor_added, _anchor_updated, _anchor_removed, _ar_session_failed);
@@ -273,6 +276,11 @@ namespace UnityEngine.XR.iOS {
             matrix.SetColumn(3, s_Camera.projectionMatrix.column3);
             return matrix;
         }
+
+		public void SetCameraClipPlanes(float nearZ, float farZ)
+		{
+			SetCameraNearFar (nearZ, farZ);
+		}
 
         [MonoPInvokeCallback(typeof(internal_ARFrameUpdate))]
 	    static void _frame_update(internal_UnityARCamera camera)
