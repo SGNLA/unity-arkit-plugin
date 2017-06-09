@@ -279,7 +279,9 @@ namespace UnityEngine.XR.iOS {
 
 		public void SetCameraClipPlanes(float nearZ, float farZ)
 		{
+#if !UNITY_EDITOR
 			SetCameraNearFar (nearZ, farZ);
+#endif
 		}
 
         [MonoPInvokeCallback(typeof(internal_ARFrameUpdate))]
