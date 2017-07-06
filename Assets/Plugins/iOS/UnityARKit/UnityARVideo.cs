@@ -9,16 +9,17 @@ namespace UnityEngine.XR.iOS
     public class UnityARVideo : MonoBehaviour
     {
         public Material m_ClearMaterial;
+		public Texture m_EditorRemoteTexture;
 
         private CommandBuffer m_VideoCommandBuffer;
         private Texture2D _videoTextureY;
         private Texture2D _videoTextureCbCr;
 
 		private UnityARSessionNativeInterface m_Session;
+		private bool bCommandBufferInitialized;
 
 
 #if !UNITY_EDITOR
-        private bool bCommandBufferInitialized;
 
         public void Start()
         {
@@ -90,16 +91,36 @@ namespace UnityEngine.XR.iOS
             m_ClearMaterial.SetInt("_isPortrait", isPortrait);
         }
 #else
-        public void Start()
-        {
-            m_VideoCommandBuffer = new CommandBuffer(); 
-            m_VideoCommandBuffer.Blit(null, BuiltinRenderTextureType.CurrentActive, m_ClearMaterial);
-            GetComponent<Camera>().AddCommandBuffer(CameraEvent.BeforeForwardOpaque, m_VideoCommandBuffer);
-        }
+		public void Start()
+		{
+			bCommandBufferInitialized = false;
+		}
+
+		void InitializeCommandBuffer()
+		{
+			m_VideoCommandBuffer = new CommandBuffer();
+			if (m_EditorRemoteTexture) {
+				m_VideoCommandBuffer.Blit (m_EditorRemoteTexture, BuiltinRenderTextureType.CurrentActive);
+			} else {
+				m_VideoCommandBuffer.Blit (null, BuiltinRenderTextureType.CurrentActive, m_ClearMaterial);
+			}
+			GetComponent<Camera>().AddCommandBuffer(CameraEvent.BeforeForwardOpaque, m_VideoCommandBuffer);
+			bCommandBufferInitialized = true;
+		}
+
+		public void OnPreRender()
+		{
+
+			if (!bCommandBufferInitialized) {
+				InitializeCommandBuffer ();
+			}
+
+		}
 
         void OnDestroy()
         {
             GetComponent<Camera>().RemoveCommandBuffer(CameraEvent.BeforeForwardOpaque, m_VideoCommandBuffer);
+			bCommandBufferInitialized = false;
         }
 
 #endif
