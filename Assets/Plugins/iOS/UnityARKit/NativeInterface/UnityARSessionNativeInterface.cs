@@ -17,6 +17,11 @@ namespace UnityEngine.XR.iOS {
         public Vector4 column1;
         public Vector4 column2;
         public Vector4 column3;
+
+		public UnityARMatrix4x4(Vector4 c0, Vector4 c1, Vector4 c2, Vector4 c3)
+		{
+			column0 = c0; column1 = c1; column2 = c2; column3 = c3;
+		}
     };
 
     struct internal_UnityARCamera
@@ -35,6 +40,15 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
         public Vector3[] pointCloudData;
+
+		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr)
+		{
+			worldTransform = wt;
+			projectionMatrix = pm;
+			trackingState = ats;
+			trackingReason = atsr;
+			pointCloudData = null;
+		}
     };
 
     public struct UnityARAnchorData
@@ -256,6 +270,47 @@ namespace UnityEngine.XR.iOS {
 				}	
 				return s_UnityARSessionNativeInterface;
 		}
+
+#if  UNITY_EDITOR
+		public static void SetStaticCamera(UnityARCamera scamera)
+		{
+			s_Camera = scamera;
+		}
+
+		public static void RunFrameUpdateCallbacks()
+		{
+			if (ARFrameUpdatedEvent != null)
+			{
+				ARFrameUpdatedEvent(s_Camera);
+			}
+		}
+
+		public static void RunAddAnchorCallbacks(ARPlaneAnchor arPlaneAnchor)
+		{
+			if (ARAnchorAddedEvent != null)
+			{
+				ARAnchorAddedEvent(arPlaneAnchor);
+			}
+		}
+
+		public static void RunUpdateAnchorCallbacks(ARPlaneAnchor arPlaneAnchor)
+		{
+			if (ARAnchorUpdatedEvent != null)
+			{
+				ARAnchorUpdatedEvent(arPlaneAnchor); 
+			}
+		}
+
+		public static void RunRemoveAnchorCallbacks(ARPlaneAnchor arPlaneAnchor)
+		{
+			if (ARAnchorRemovedEvent != null)
+			{
+				ARAnchorRemovedEvent(arPlaneAnchor);
+			}
+		}
+
+
+#endif
 
         public Matrix4x4 GetCameraPose()
         {
