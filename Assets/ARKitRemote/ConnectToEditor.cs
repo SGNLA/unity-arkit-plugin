@@ -96,6 +96,7 @@ namespace UnityEngine.XR.iOS
 
 		public void ARFrameUpdated(UnityARCamera camera)
 		{
+			//Debug.Log("sending camera");
 			serializableUnityARCamera serARCamera = camera;
 			SendToEditor(ConnectionMessageIds.updateCameraFrameMsgId, serARCamera);
 
@@ -103,18 +104,21 @@ namespace UnityEngine.XR.iOS
 
 		public void ARAnchorAdded(ARPlaneAnchor planeAnchor)
 		{
+			//Debug.Log("adding anchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = planeAnchor;
 			SendToEditor (ConnectionMessageIds.addPlaneAnchorMsgeId, serPlaneAnchor);
 		}
 
 		public void ARAnchorUpdated(ARPlaneAnchor planeAnchor)
 		{
+			//Debug.Log("updating anchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = planeAnchor;
 			SendToEditor (ConnectionMessageIds.updatePlaneAnchorMsgeId, serPlaneAnchor);
 		}
 
 		public void ARAnchorRemoved(ARPlaneAnchor planeAnchor)
 		{
+			//Debug.Log("removing anchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = planeAnchor;
 			SendToEditor (ConnectionMessageIds.removePlaneAnchorMsgeId, serPlaneAnchor);
 		}
@@ -175,22 +179,6 @@ namespace UnityEngine.XR.iOS
 		{
 		}
 
-		void OnPostRender()
-		{
-			// Create a texture the size of the screen, RGB24 format
-			int width = Screen.width;
-			int height = Screen.height;
-			Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-
-			// Read screen contents into the texture
-			tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-			tex.Apply();
-
-			// Encode texture into PNG
-			byte[] bytes = tex.EncodeToPNG();
-			Object.Destroy(tex);
-			SendToEditor (ConnectionMessageIds.screenCaptureMsgId, bytes);
-		}
 
 	}
 
