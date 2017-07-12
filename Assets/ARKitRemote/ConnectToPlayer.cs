@@ -1,11 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.Networking.PlayerConnection;
 using System.Text;
-using Utils;
+using Utils; 
 
 #if UNITY_EDITOR
-
-
+ 
 using UnityEditor.Networking.PlayerConnection;
 
 namespace UnityEngine.XR.iOS
@@ -34,6 +33,7 @@ namespace UnityEngine.XR.iOS
 			scamera.worldTransform = new UnityARMatrix4x4 (new Vector4 (1, 0, 0, 0), new Vector4 (0, 1, 0, 0), new Vector4 (0, 0, 1, 0), new Vector4 (0, 0, 0, 1));
 			Matrix4x4 projMat = Matrix4x4.Perspective (60.0f, 1.33f, 0.1f, 30.0f);
 			scamera.projectionMatrix = new UnityARMatrix4x4 (projMat.GetColumn(0),projMat.GetColumn(1),projMat.GetColumn(2),projMat.GetColumn(3));
+
 			UnityARSessionNativeInterface.SetStaticCamera (scamera);
 
 			editorConnection = EditorConnection.instance;
@@ -134,7 +134,7 @@ namespace UnityEngine.XR.iOS
 
 		void UpdateCameraFrame(MessageEventArgs mea)
 		{
-			Debug.Log("UpdateCameraFrame");
+			//Debug.Log("UpdateCameraFrame");
 			serializableUnityARCamera serCamera = mea.data.Deserialize<serializableUnityARCamera> ();
 
 			UnityARCamera scamera = new UnityARCamera ();
@@ -146,7 +146,7 @@ namespace UnityEngine.XR.iOS
 
 		void AddPlaneAnchor(MessageEventArgs mea)
 		{
-			Debug.Log("AddPlaneAnchor");
+			//Debug.Log("AddPlaneAnchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = mea.data.Deserialize<serializableUnityARPlaneAnchor> ();
 
 			ARPlaneAnchor arPlaneAnchor = serPlaneAnchor;
@@ -155,7 +155,7 @@ namespace UnityEngine.XR.iOS
 
 		void UpdatePlaneAnchor(MessageEventArgs mea)
 		{
-			Debug.Log("UpdatePlaneAnchor");
+			//Debug.Log("UpdatePlaneAnchor");
 
 			serializableUnityARPlaneAnchor serPlaneAnchor = mea.data.Deserialize<serializableUnityARPlaneAnchor> ();
 
@@ -165,7 +165,7 @@ namespace UnityEngine.XR.iOS
 
 		void RemovePlaneAnchor(MessageEventArgs mea)
 		{
-			Debug.Log("RemovePlaneAnchor");
+			//Debug.Log("RemovePlaneAnchor");
 
 			serializableUnityARPlaneAnchor serPlaneAnchor = mea.data.Deserialize<serializableUnityARPlaneAnchor> ();
 
@@ -175,7 +175,11 @@ namespace UnityEngine.XR.iOS
 
 		void ReceiveRemoteScreen(MessageEventArgs mea)
 		{
-			remoteScreenTex.LoadImage (mea.data);
+			Debug.Log("ReceiveRemoteScreen");
+
+			//remoteScreenTex.LoadImage (mea.data);
+			remoteScreenTex = new Texture2D(800,600, TextureFormat.R8, false, true);
+			remoteScreenTex.LoadRawTextureData(mea.data);
 		}
 
 		void EditorMessageHandler2(MessageEventArgs mea)
@@ -213,6 +217,7 @@ namespace UnityEngine.XR.iOS
 		void Update () {
 			
 		}
+
 	}
 }
 #endif
