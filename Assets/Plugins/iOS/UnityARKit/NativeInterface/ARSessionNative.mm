@@ -1,4 +1,5 @@
 #import <ARKit/ARKit.h>
+#import <CoreVideo/CoreVideo.h>
 #include "stdlib.h"
 #include "UnityAppController.h"
 
@@ -64,6 +65,12 @@ typedef struct
     UnityARVector4 extent;
 } UnityARAnchorData;
 
+typedef struct
+{
+    void* identifier;
+    UnityARMatrix4x4 transform;
+} UnityARUserAnchorData;
+
 enum UnityARTrackingState
 {
     UnityARTrackingStateNotAvailable,
@@ -94,9 +101,9 @@ typedef struct
     NSUInteger pointCloudSize;
 } UnityARPointCloudData;
 
-//typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARMatrix4x4 cameraPos, UnityARMatrix4x4 projection);
 typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
+typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
 typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(void* error);
 
 static inline ARWorldAlignment GetARWorldAlignmentFromUnityARAlignment(UnityARAlignment& unityAlignment)
@@ -205,6 +212,25 @@ inline void ARKitMatrixToUnityARMatrix4x4(const matrix_float4x4& matrixIn, Unity
     matrixOut->column3.w = c3.w;
 }
 
+inline void UnityARAnchorDataFromARAnchorPtr(UnityARAnchorData& anchorData, ARPlaneAnchor* nativeAnchor)
+{
+    anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
+    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
+    anchorData.alignment = nativeAnchor.alignment;
+    anchorData.center.x = nativeAnchor.center.x;
+    anchorData.center.y = nativeAnchor.center.y;
+    anchorData.center.z = nativeAnchor.center.z;
+    anchorData.extent.x = nativeAnchor.extent.x;
+    anchorData.extent.y = nativeAnchor.extent.y;
+    anchorData.extent.z = nativeAnchor.extent.z;
+}
+
+inline void UnityARUserAnchorDataFromARAnchorPtr(UnityARUserAnchorData& anchorData, ARAnchor* nativeAnchor)
+{
+    anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
+    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
+}
+
 // These don't all need to be static data, but no other better place for them at the moment.
 static id <MTLTexture> s_CapturedImageTextureY;
 static id <MTLTexture> s_CapturedImageTextureCbCr;
@@ -219,24 +245,106 @@ static NSUInteger s_PointCloudSize;
 static float unityCameraNearZ;
 static float unityCameraFarZ;
 
+@protocol UnityARAnchorEventDispatcher
+@required
+    -(void)sendAnchorAddedEvent:(ARAnchor*)anchor;
+    -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor;
+    -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor;
+@end
+
+@interface UnityARAnchorCallbackWrapper : NSObject <UnityARAnchorEventDispatcher>
+{
+@public
+    UNITY_AR_ANCHOR_CALLBACK _anchorAddedCallback;
+    UNITY_AR_ANCHOR_CALLBACK _anchorUpdatedCallback;
+    UNITY_AR_ANCHOR_CALLBACK _anchorRemovedCallback;
+}
+@end
+
+@implementation UnityARAnchorCallbackWrapper
+
+    -(void)sendAnchorAddedEvent:(ARAnchor*)anchor
+    {
+        UnityARAnchorData data;
+        UnityARAnchorDataFromARAnchorPtr(data, (ARPlaneAnchor*)anchor);
+       _anchorAddedCallback(data);
+    }
+
+    -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
+    {
+        UnityARAnchorData data;
+        UnityARAnchorDataFromARAnchorPtr(data, (ARPlaneAnchor*)anchor);
+       _anchorRemovedCallback(data);
+    }
+
+    -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
+    {
+        UnityARAnchorData data;
+        UnityARAnchorDataFromARAnchorPtr(data, (ARPlaneAnchor*)anchor);
+       _anchorUpdatedCallback(data);
+    }
+
+@end
+
+@interface UnityARUserAnchorCallbackWrapper : NSObject <UnityARAnchorEventDispatcher>
+{
+@public
+    UNITY_AR_USER_ANCHOR_CALLBACK _anchorAddedCallback;
+    UNITY_AR_USER_ANCHOR_CALLBACK _anchorUpdatedCallback;
+    UNITY_AR_USER_ANCHOR_CALLBACK _anchorRemovedCallback;
+}
+@end
+
+@implementation UnityARUserAnchorCallbackWrapper
+
+    -(void)sendAnchorAddedEvent:(ARAnchor*)anchor
+    {
+        UnityARUserAnchorData data;
+        UnityARUserAnchorDataFromARAnchorPtr(data, anchor);
+       _anchorAddedCallback(data);
+    }
+
+    -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
+    {
+        UnityARUserAnchorData data;
+        UnityARUserAnchorDataFromARAnchorPtr(data, anchor);
+       _anchorRemovedCallback(data);
+    }
+
+    -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
+    {
+        UnityARUserAnchorData data;
+        UnityARUserAnchorDataFromARAnchorPtr(data, anchor);
+       _anchorUpdatedCallback(data);
+    }
+
+@end
+
 @interface UnityARSession : NSObject <ARSessionDelegate>
 {
 @public
     ARSession* _session;
     UNITY_AR_FRAME_CALLBACK _frameCallback;
-    UNITY_AR_ANCHOR_CALLBACK _anchorAddedCallback;
-    UNITY_AR_ANCHOR_CALLBACK _anchorUpdatedCallback;
-    UNITY_AR_ANCHOR_CALLBACK _anchorRemovedCallback;
     UNITY_AR_SESSION_FAILED_CALLBACK _arSessionFailedCallback;
 
+    NSMutableDictionary* _classToCallbackMap;
+    
     id <MTLDevice> _device;
-
     CVMetalTextureCacheRef _textureCache;
     BOOL _getPointCloudData;
 }
 @end
 
 @implementation UnityARSession
+
+- (id)init
+{
+    if (self = [super init])
+    {
+        _classToCallbackMap = [[NSMutableDictionary alloc] init];
+    }
+    return self;
+}
 
 - (void)setupMetal
 {
@@ -256,7 +364,7 @@ static CGAffineTransform s_CurAffineTransform;
 - (void)session:(ARSession *)session didUpdateFrame:(ARFrame *)frame
 {
     s_AmbientIntensity = frame.lightEstimate.ambientIntensity;
-    s_TrackingQuality = frame.camera.trackingState;
+    s_TrackingQuality = (int)frame.camera.trackingState;
     s_PointCloud = frame.rawFeaturePoints.points;
     s_PointCloudSize = frame.rawFeaturePoints.count;
 
@@ -379,61 +487,52 @@ static CGAffineTransform s_CurAffineTransform;
     NSLog(@"AR FAIL");
     if (_arSessionFailedCallback != NULL)
     {
-        //_arSessionFailedCallback((void*)"ar session failed");
+        _arSessionFailedCallback((void*)"ar session failed");
     }
 }
 
 - (void)session:(ARSession *)session didAddAnchors:(NSArray<ARAnchor*>*)anchors
 {
     NSLog(@"AR ANCHOR ADDED");
-
-    [self sendAnchorsToUnity: anchors withCallback: _anchorAddedCallback];
-
+    [self sendAnchorAddedEventToUnity:anchors];
 }
 
 - (void)session:(ARSession *)session didUpdateAnchors:(NSArray<ARAnchor*>*)anchors
 {
     NSLog(@"AR ANCHOR UPDATE");
-
-    [self sendAnchorsToUnity: anchors withCallback: _anchorUpdatedCallback];
-
+   [self sendAnchorUpdatedEventToUnity:anchors];
 }
 
 - (void)session:(ARSession *)session didRemoveAnchors:(NSArray<ARAnchor*>*)anchors
 {
     NSLog(@"AR ANCHOR REMOVED");
-    [self sendAnchorsToUnity: anchors withCallback: _anchorRemovedCallback];
-
+   [self sendAnchorRemovedEventToUnity:anchors];
 }
 
-- (void) sendAnchorsToUnity:(NSArray<ARAnchor*>*)anchors withCallback:(UNITY_AR_ANCHOR_CALLBACK)anchorCallback
+- (void) sendAnchorAddedEventToUnity:(NSArray<ARAnchor*>*)anchors
 {
-    if (anchorCallback != NULL)
+    for (ARAnchor* anchorPtr in anchors)
     {
-        for (ARAnchor* anchorPtr in anchors)
-        {
-            if ([anchorPtr isKindOfClass:[ARPlaneAnchor class]])
-            {
-                ARPlaneAnchor * arPlaneAnchorPtr = (ARPlaneAnchor *) anchorPtr;
+        id<UnityARAnchorEventDispatcher> dispatcher = [_classToCallbackMap objectForKey:[anchorPtr class]];
+        [dispatcher sendAnchorAddedEvent:anchorPtr];
+    }
+}
 
+- (void) sendAnchorRemovedEventToUnity:(NSArray<ARAnchor*>*)anchors
+{
+    for (ARAnchor* anchorPtr in anchors)
+    {
+        id<UnityARAnchorEventDispatcher> dispatcher = [_classToCallbackMap objectForKey:[anchorPtr class]];
+        [dispatcher sendAnchorRemovedEvent:anchorPtr];
+    }
+}
 
-                UnityARAnchorData arAnchorData;
-                {
-                    arAnchorData.identifier = (void*)[arPlaneAnchorPtr.identifier.UUIDString UTF8String];
-                    ARKitMatrixToUnityARMatrix4x4(arPlaneAnchorPtr.transform, &arAnchorData.transform);
-                    arAnchorData.alignment = arPlaneAnchorPtr.alignment;
-                    arAnchorData.center.x = arPlaneAnchorPtr.center.x;
-                    arAnchorData.center.y = arPlaneAnchorPtr.center.y;
-                    arAnchorData.center.z = arPlaneAnchorPtr.center.z;
-                    arAnchorData.extent.x = arPlaneAnchorPtr.extent.x;
-                    arAnchorData.extent.y = arPlaneAnchorPtr.extent.y;
-                    arAnchorData.extent.z = arPlaneAnchorPtr.extent.z;
-
-                }
-                anchorCallback(arAnchorData);
-            }
-
-        }
+- (void) sendAnchorUpdatedEventToUnity:(NSArray<ARAnchor*>*)anchors
+{
+    for (ARAnchor* anchorPtr in anchors)
+    {
+        id<UnityARAnchorEventDispatcher> dispatcher = [_classToCallbackMap objectForKey:[anchorPtr class]];
+        [dispatcher sendAnchorUpdatedEvent:anchorPtr];
     }
 }
 
@@ -441,15 +540,33 @@ static CGAffineTransform s_CurAffineTransform;
 
 /// Create the native mirror to the C# ARSession object
 
-extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallback, UNITY_AR_ANCHOR_CALLBACK anchorAddedCallback, UNITY_AR_ANCHOR_CALLBACK anchorUpdatedCallback, UNITY_AR_ANCHOR_CALLBACK anchorRemovedCallback, UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed)
+extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallback, 
+                                            UNITY_AR_ANCHOR_CALLBACK anchorAddedCallback, 
+                                            UNITY_AR_ANCHOR_CALLBACK anchorUpdatedCallback, 
+                                            UNITY_AR_ANCHOR_CALLBACK anchorRemovedCallback, 
+                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorAddedCallback, 
+                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorUpdatedCallback, 
+                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorRemovedCallback, 
+                                            UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed)
 {
     UnityARSession *nativeSession = [[UnityARSession alloc] init];
     nativeSession->_session = [ARSession new];
     nativeSession->_session.delegate = nativeSession;
     nativeSession->_frameCallback = frameCallback;
-    nativeSession->_anchorAddedCallback = anchorAddedCallback;
-    nativeSession->_anchorUpdatedCallback = anchorUpdatedCallback;
-    nativeSession->_anchorRemovedCallback = anchorRemovedCallback;
+
+    UnityARAnchorCallbackWrapper* anchorCallbacks = [[UnityARAnchorCallbackWrapper alloc] init];
+    anchorCallbacks->_anchorAddedCallback = anchorAddedCallback;
+    anchorCallbacks->_anchorUpdatedCallback = anchorUpdatedCallback;
+    anchorCallbacks->_anchorRemovedCallback = anchorRemovedCallback;
+
+    UnityARUserAnchorCallbackWrapper* userAnchorCallbacks = [[UnityARUserAnchorCallbackWrapper alloc] init];
+    userAnchorCallbacks->_anchorAddedCallback = userAnchorAddedCallback;
+    userAnchorCallbacks->_anchorUpdatedCallback = userAnchorUpdatedCallback;
+    userAnchorCallbacks->_anchorRemovedCallback = userAnchorRemovedCallback;
+
+    [nativeSession->_classToCallbackMap setObject:anchorCallbacks forKey:[ARPlaneAnchor class]];
+    [nativeSession->_classToCallbackMap setObject:userAnchorCallbacks forKey:[ARAnchor class]];
+
     nativeSession->_arSessionFailedCallback = sessionFailed;
     unityCameraNearZ = .01;
     unityCameraFarZ = 30;
@@ -512,6 +629,35 @@ extern "C" void StopSession(void* nativeSession)
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
     [session teardownMetal];
+}
+
+extern "C" UnityARAnchorData SessionAddAnchor(void* nativeSession, UnityARAnchorData anchorData)
+{
+    // create a native ARAnchor and add it to the session
+    // then return the data back to the user that they will
+    // need in case they want to remove it
+    UnityARSession* session = (__bridge UnityARSession*)nativeSession;
+    ARAnchor *newAnchor = [[ARAnchor alloc] initWithTransform:matrix_identity_float4x4];
+    
+    [session->_session addAnchor:newAnchor];
+    UnityARAnchorData returnAnchorData;
+    UnityARAnchorDataFromARAnchorPtr(returnAnchorData, newAnchor);
+    return returnAnchorData;
+}
+
+extern "C" void SessionRemoveAnchor(void* nativeSession, const char * anchorIdentifier)
+{
+    // go through anchors and find the right one
+    // then remove it from the session
+    UnityARSession* session = (__bridge UnityARSession*)nativeSession;
+    for (ARAnchor* a in session->_session.currentFrame.anchors)
+    {
+        if ([[a.identifier UUIDString] isEqualToString:[NSString stringWithUTF8String:anchorIdentifier]])
+        {
+            [session->_session removeAnchor:a];
+            return;
+        }
+    }
 }
 
 extern "C" void SetCameraNearFar (float nearZ, float farZ)
