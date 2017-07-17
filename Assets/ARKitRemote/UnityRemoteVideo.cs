@@ -8,7 +8,6 @@ namespace UnityEngine.XR.iOS
 
 	public class UnityRemoteVideo : MonoBehaviour
 	{
-		public UnityARVideo arVideoGO;
 		public ConnectToEditor connectToEditor;
 
 		private CommandBuffer m_VideoCommandBuffer;
@@ -19,81 +18,76 @@ namespace UnityEngine.XR.iOS
 		private bool bCommandBufferInitialized;
 
 		private RenderTexture [] m_copyTexturesY;
-		private int currentIndex;
-
+		private int currentFrameIndex;
+		private byte[] m_textureYBytes;
+		private byte[] m_textureUVBytes;
+		private byte[] m_textureYBytes2;
+		private byte[] m_textureUVBytes2;
+		private GCHandle m_pinnedYArray;
+		private GCHandle m_pinnedUVArray;
 
 		#if !UNITY_EDITOR
 
 		public void Start()
 		{
 			m_Session = UnityARSessionNativeInterface.GetARSessionNativeInterface ();
-			//bCommandBufferInitialized = false;
-			currentIndex = 0;
+			currentFrameIndex = 0;
+			m_textureYBytes = new byte[1280 * 720];
+			m_textureUVBytes = new byte[640 * 360 * 2];
+			m_textureYBytes2 = new byte[1280 * 720];
+			m_textureUVBytes2 = new byte[640 * 360 * 2];
+			m_pinnedYArray = GCHandle.Alloc (m_textureYBytes);
+			m_pinnedUVArray = GCHandle.Alloc (m_textureUVBytes);
 		}
 
-//		void InitializeCommandBuffer()
-//		{
-//			m_VideoCommandBuffer = new CommandBuffer(); 
-//			m_copyTexturesY = new RenderTexture[2];
-//			arVideoGO.GetComponent<Camera>().AddCommandBuffer(CameraEvent.BeforeForwardOpaque, m_VideoCommandBuffer);
-//			bCommandBufferInitialized = true;
-//
-//		}
+		IntPtr PinByteArray(ref GCHandle handle, byte[] array)
+		{
+			handle.Free ();
+			handle = GCHandle.Alloc (array, GCHandleType.Pinned);
+			return handle.AddrOfPinnedObject ();
+		}
+
+		byte [] ByteArrayForFrame(int frame,  byte[] array0,  byte[] array1)
+		{
+			return frame == 1 ? array1 : array0;
+		}
+
+		byte [] YByteArrayForFrame(int frame)
+		{
+			return ByteArrayForFrame (frame, m_textureYBytes, m_textureYBytes2);
+		}
+
+		byte [] UVByteArrayForFrame(int frame)
+		{
+			return ByteArrayForFrame (frame, m_textureUVBytes, m_textureUVBytes2);
+		}
 
 		void OnDestroy()
 		{
-			arVideoGO.GetComponent<Camera>().RemoveCommandBuffer(CameraEvent.BeforeForwardOpaque, m_VideoCommandBuffer);
+			m_Session.SetCapturePixelData (false, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+
+			m_pinnedYArray.Free ();
+			m_pinnedUVArray.Free ();
+
 		}
 
 		public void OnPreRender()
 		{
-			int previousIndex = currentIndex;
-			currentIndex = (currentIndex + 1) % 2;
 			ARTextureHandles handles = m_Session.GetARVideoTextureHandles();
 			if (handles.textureY == System.IntPtr.Zero || handles.textureCbCr == System.IntPtr.Zero)
 			{
 				return;
 			}
-
-//			if (!bCommandBufferInitialized) {
-//				InitializeCommandBuffer ();
-//			}
+			currentFrameIndex = (currentFrameIndex + 1) % 2;
 
 			Resolution currentResolution = Screen.currentResolution;
 
-			// Texture Y
-//			_videoTextureY = Texture2D.CreateExternalTexture(currentResolution.width, currentResolution.height,
-//			TextureFormat.R8, false, false, (System.IntPtr)handles.textureY);
-//			_videoTextureY.filterMode = FilterMode.Bilinear;
-//			_videoTextureY.wrapMode = TextureWrapMode.Repeat;
-//			_videoTextureY.UpdateExternalTexture(handles.textureY);
-//
-//			// Texture CbCr
-//			_videoTextureCbCr = Texture2D.CreateExternalTexture(currentResolution.width, currentResolution.height,
-//			TextureFormat.RG16, false, false, (System.IntPtr)handles.textureCbCr);
-//			_videoTextureCbCr.filterMode = FilterMode.Bilinear;
-//			_videoTextureCbCr.wrapMode = TextureWrapMode.Repeat;
-//			_videoTextureCbCr.UpdateExternalTexture(handles.textureCbCr);
-			byte[] textureYData = new byte[currentResolution.width * currentResolution.height];
-			Marshal.Copy ((System.IntPtr)handles.textureY, textureYData, 0, textureYData.Length);
-			connectToEditor.SendToEditor (ConnectionMessageIds.screenCaptureMsgId, textureYData);
 
-			//if (m_copyTexturesY [currentIndex] == null) {
-			//	m_copyTexturesY [currentIndex] = new RenderTexture (Screen.width, Screen.height, 0, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
-			//}
+			m_Session.SetCapturePixelData (true, PinByteArray(ref m_pinnedYArray,YByteArrayForFrame(currentFrameIndex)), PinByteArray(ref m_pinnedUVArray,UVByteArrayForFrame(currentFrameIndex)), IntPtr.Zero);
 
-			//m_VideoCommandBuffer.Clear ();
-			//m_VideoCommandBuffer.Blit(_videoTextureY, m_copyTexturesY[currentIndex]);
+			connectToEditor.SendToEditor (ConnectionMessageIds.screenCaptureYMsgId, YByteArrayForFrame(1-currentFrameIndex));
+			connectToEditor.SendToEditor (ConnectionMessageIds.screenCaptureUVMsgId, UVByteArrayForFrame(1-currentFrameIndex));
 
-
-			//send texture data from previous frame
-//			if (m_copyTexturesY [previousIndex]) {
-//				byte[] texData = new byte[3];//m_copyTexturesY [previousIndex];
-//				string debgStr = "texData.length = " + texData.Length;
-//				Debug.Log (debgStr);
-//				if (texData.Length > 0)
-//				connectToEditor.SendToEditor (ConnectionMessageIds.screenCaptureMsgId, texData);
-//			}
 		}
 		#endif
 	}

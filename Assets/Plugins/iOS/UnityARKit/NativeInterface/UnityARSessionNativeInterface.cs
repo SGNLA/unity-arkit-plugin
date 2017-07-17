@@ -254,6 +254,9 @@ namespace UnityEngine.XR.iOS {
 		[DllImport("__Internal")]
 		private static extern void SetCameraNearFar (float nearZ, float farZ);
 
+		[DllImport("__Internal")]
+		private static extern void CapturePixelData (int enable, IntPtr  pYPixelBytes, IntPtr pUVPixelBytes, IntPtr cvPixelBufferPtr);
+
 		public UnityARSessionNativeInterface()
 		{
 #if !UNITY_EDITOR
@@ -271,7 +274,7 @@ namespace UnityEngine.XR.iOS {
 				return s_UnityARSessionNativeInterface;
 		}
 
-#if  UNITY_EDITOR
+#if UNITY_EDITOR
 		public static void SetStaticCamera(UnityARCamera scamera)
 		{
 			s_Camera = scamera;
@@ -336,6 +339,14 @@ namespace UnityEngine.XR.iOS {
 		{
 #if !UNITY_EDITOR
 			SetCameraNearFar (nearZ, farZ);
+#endif
+		}
+
+		public void SetCapturePixelData(bool enable, IntPtr pYByteArray, IntPtr pUVByteArray, IntPtr cvPixelBufferPtr)
+		{
+			int iEnable = enable ? 1 : 0;
+#if !UNITY_EDITOR
+			CapturePixelData (iEnable,pYByteArray, pUVByteArray, cvPixelBufferPtr);
 #endif
 		}
 
