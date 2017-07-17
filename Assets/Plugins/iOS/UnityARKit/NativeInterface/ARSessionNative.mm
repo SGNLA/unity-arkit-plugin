@@ -94,6 +94,16 @@ typedef struct
     NSUInteger pointCloudSize;
 } UnityARPointCloudData;
 
+typedef struct
+{
+    void* pYPixelBytes;
+    void* pUVPixelBytes;
+    void * cvPixelBufferPtr;
+    BOOL bEnable;
+}UnityPixelBuffer;
+
+
+
 //typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARMatrix4x4 cameraPos, UnityARMatrix4x4 projection);
 typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
@@ -217,6 +227,8 @@ static NSUInteger s_PointCloudSize;
 static float unityCameraNearZ;
 static float unityCameraFarZ;
 
+static UnityPixelBuffer s_UnityPixelBuffers;
+
 @interface UnityARSession : NSObject <ARSessionDelegate>
 {
 @public
@@ -329,7 +341,32 @@ static CGAffineTransform s_CurAffineTransform;
     if (CVPixelBufferGetPlaneCount(pixelBuffer) < 2 || CVPixelBufferGetPixelFormatType(pixelBuffer) != kCVPixelFormatType_420YpCbCr8BiPlanarFullRange) {
         return;
     }
-
+    
+    if (s_UnityPixelBuffers.bEnable)
+    {
+        if (s_UnityPixelBuffers.cvPixelBufferPtr != NULL)
+        {
+            s_UnityPixelBuffers.cvPixelBufferPtr = (void *)pixelBuffer;
+        }
+        
+        CVPixelBufferLockBaseAddress(pixelBuffer, kCVPixelBufferLock_ReadOnly);
+        
+        if (s_UnityPixelBuffers.pYPixelBytes)
+        {
+            uint32_t numBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 0) * CVPixelBufferGetHeightOfPlane(pixelBuffer,0);
+            void* baseAddress = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,0);
+            memcpy(s_UnityPixelBuffers.pYPixelBytes, baseAddress, numBytes);
+        }
+        if (s_UnityPixelBuffers.pUVPixelBytes)
+        {
+            uint32_t numBytes = CVPixelBufferGetBytesPerRowOfPlane(pixelBuffer, 1) * CVPixelBufferGetHeightOfPlane(pixelBuffer,1);
+            void* baseAddress = CVPixelBufferGetBaseAddressOfPlane(pixelBuffer,1);
+            memcpy(s_UnityPixelBuffers.pUVPixelBytes, baseAddress, numBytes);
+        }
+        
+        CVPixelBufferUnlockBaseAddress(pixelBuffer, 0);
+    }
+    
     id<MTLTexture> textureY = nil;
     id<MTLTexture> textureCbCr = nil;
 
@@ -451,6 +488,7 @@ extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallba
     nativeSession->_arSessionFailedCallback = sessionFailed;
     unityCameraNearZ = .01;
     unityCameraFarZ = 30;
+    s_UnityPixelBuffers.bEnable = false;
     return (__bridge_retained void*)nativeSession;
 }
 
@@ -516,6 +554,21 @@ extern "C" void SetCameraNearFar (float nearZ, float farZ)
 {
     unityCameraNearZ = nearZ;
     unityCameraFarZ = farZ;
+}
+
+extern "C" void CapturePixelData (uint32_t enable, void* pYPixelBytes, void *pUVPixelBytes, void* cvPixelBufferPtr)
+{
+    s_UnityPixelBuffers.bEnable = (BOOL) enable;
+    if (s_UnityPixelBuffers.bEnable)
+    {
+        s_UnityPixelBuffers.pYPixelBytes = pYPixelBytes;
+        s_UnityPixelBuffers.pUVPixelBytes = pUVPixelBytes;
+        s_UnityPixelBuffers.cvPixelBufferPtr = cvPixelBufferPtr;
+    } else {
+        s_UnityPixelBuffers.pYPixelBytes = NULL;
+        s_UnityPixelBuffers.pUVPixelBytes = NULL;
+        s_UnityPixelBuffers.cvPixelBufferPtr = NULL;
+    }
 }
 
 extern "C" struct HitTestResult
