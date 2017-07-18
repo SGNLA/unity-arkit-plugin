@@ -105,6 +105,8 @@ typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
 typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
 typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
+typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(void* error);
+typedef void (*UNITY_AR_SESSION_VOID_CALLBACK)(void);
 
 static inline ARWorldAlignment GetARWorldAlignmentFromUnityARAlignment(UnityARAlignment& unityAlignment)
 {
@@ -326,6 +328,8 @@ static float unityCameraFarZ;
     ARSession* _session;
     UNITY_AR_FRAME_CALLBACK _frameCallback;
     UNITY_AR_SESSION_FAILED_CALLBACK _arSessionFailedCallback;
+    UNITY_AR_SESSION_VOID_CALLBACK _arSessionInterrupted;
+    UNITY_AR_SESSION_VOID_CALLBACK _arSessionInterruptionEnded;
 
     NSMutableDictionary* _classToCallbackMap;
     
@@ -514,6 +518,23 @@ static CGAffineTransform s_CurAffineTransform;
     }
 }
 
+- (void)sessionWasInterrupted:(ARSession *)session
+{
+    if (_arSessionInterrupted != NULL)
+    {
+        _arSessionInterrupted();
+
+    }
+}
+
+- (void)sessionInterruptionEnded:(ARSession *)session
+{
+    if (_arSessionInterruptionEnded != NULL)
+    {
+        _arSessionInterruptionEnded();
+    }
+}
+
 - (void) sendAnchorRemovedEventToUnity:(NSArray<ARAnchor*>*)anchors
 {
     for (ARAnchor* anchorPtr in anchors)
@@ -543,7 +564,9 @@ extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallba
                                             UNITY_AR_USER_ANCHOR_CALLBACK userAnchorAddedCallback, 
                                             UNITY_AR_USER_ANCHOR_CALLBACK userAnchorUpdatedCallback, 
                                             UNITY_AR_USER_ANCHOR_CALLBACK userAnchorRemovedCallback, 
-                                            UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed)
+                                            UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed,
+                                            UNITY_AR_SESSION_VOID_CALLBACK sessionInterrupted,
+                                            UNITY_AR_SESSION_VOID_CALLBACK sessionInterruptionEnded)
 {
     UnityARSession *nativeSession = [[UnityARSession alloc] init];
     nativeSession->_session = [ARSession new];
@@ -564,6 +587,8 @@ extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallba
     [nativeSession->_classToCallbackMap setObject:userAnchorCallbacks forKey:[ARAnchor class]];
 
     nativeSession->_arSessionFailedCallback = sessionFailed;
+    nativeSession->_arSessionInterrupted = sessionInterrupted;
+    nativeSession->_arSessionInterruptionEnded = sessionInterruptionEnded;
     unityCameraNearZ = .01;
     unityCameraFarZ = 30;
     return (__bridge_retained void*)nativeSession;
