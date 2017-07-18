@@ -187,10 +187,14 @@ namespace UnityEngine.XR.iOS {
 		public delegate void ARSessionFailed(string error);
         public static event ARSessionFailed ARSessionFailedEvent;
 
+        public delegate void ARSessionTrackingChanged(UnityARCamera camera);
+        public static event ARSessionTrackingChanged ARSessionTrackingChangedEvent;
+
         delegate void internal_ARFrameUpdate(internal_UnityARCamera camera);
 		public delegate void internal_ARAnchorAdded(UnityARAnchorData anchorData);
 	    public delegate void internal_ARAnchorUpdated(UnityARAnchorData anchorData);
 	    public delegate void internal_ARAnchorRemoved(UnityARAnchorData anchorData);
+        delegate void internal_ARSessionTrackingChanged(internal_UnityARCamera camera);
 
 #if !UNITY_EDITOR
 	    private IntPtr m_NativeARSession;
@@ -199,7 +203,7 @@ namespace UnityEngine.XR.iOS {
 	    private static UnityARCamera s_Camera;
 		
 	    [DllImport("__Internal")]
-        private static extern IntPtr unity_CreateNativeARSession(internal_ARFrameUpdate frameUpdate, internal_ARAnchorAdded anchorAdded, internal_ARAnchorUpdated anchorUpdated, internal_ARAnchorRemoved anchorRemoved, ARSessionFailed sessionFailed);
+        private static extern IntPtr unity_CreateNativeARSession(internal_ARFrameUpdate frameUpdate, internal_ARAnchorAdded anchorAdded, internal_ARAnchorUpdated anchorUpdated, internal_ARAnchorRemoved anchorRemoved, ARSessionFailed sessionFailed, internal_ARSessionTrackingChanged trackingChanged);
 
 	    [DllImport("__Internal")]
 	    private static extern void StartWorldTrackingSession(IntPtr nativeSession, ARKitWorldTackingSessionConfiguration configuration);
@@ -243,7 +247,7 @@ namespace UnityEngine.XR.iOS {
 		public UnityARSessionNativeInterface()
 		{
 #if !UNITY_EDITOR
-	        m_NativeARSession = unity_CreateNativeARSession(_frame_update, _anchor_added, _anchor_updated, _anchor_removed, _ar_session_failed);
+	        m_NativeARSession = unity_CreateNativeARSession(_frame_update, _anchor_added, _anchor_updated, _anchor_removed, _ar_session_failed, _ar_tracking_changed);
 #endif
 	    }
 		
@@ -302,6 +306,18 @@ namespace UnityEngine.XR.iOS {
             if (ARFrameUpdatedEvent != null)
             {
                 ARFrameUpdatedEvent(s_Camera);
+            }
+	    }
+
+        [MonoPInvokeCallback(typeof(internal_ARSessionTrackingChanged))]
+	    static void _ar_tracking_changed(internal_UnityARCamera camera)
+	    {
+            // we only update the current camera's tracking state since that's all 
+            // this cllback is for
+            s_Camera.trackingReason = camera.trackingReason;
+            if (ARSessionTrackingChangedEvent != null)
+            {
+                ARSessionTrackingChangedEvent(s_Camera);
             }
 	    }
 
