@@ -255,8 +255,24 @@ namespace UnityEngine.XR.iOS {
 	    private static UnityARCamera s_Camera;
 		
 	    [DllImport("__Internal")]
-        private static extern IntPtr unity_CreateNativeARSession(internal_ARFrameUpdate frameUpdate, internal_ARAnchorAdded anchorAdded, internal_ARAnchorUpdated anchorUpdated, internal_ARAnchorRemoved anchorRemoved, internal_ARUserAnchorAdded userAnchorAdded, internal_ARUserAnchorUpdated userAnchorUpdated, internal_ARUserAnchorRemoved userAnchorRemoved,ARSessionFailed sessionFailed, ARSessionCallback sessionInterrupted, ARSessionCallback sessionInterruptionEnded, internal_ARSessionTrackingChanged trackingChanged);
+        private static extern IntPtr unity_CreateNativeARSession();
 
+        [DllImport("__Internal")]
+        private static extern void session_SetSessionCallbacks(IntPtr nativeSession, internal_ARFrameUpdate frameCallback,
+                                            ARSessionFailed sessionFailed,
+                                            ARSessionCallback sessionInterrupted,
+                                            ARSessionCallback sessionInterruptionEnded,
+                                            internal_ARSessionTrackingChanged trackingChanged);
+
+        [DllImport("__Internal")]
+        private static extern void session_SetPlaneAnchorCallbacks(IntPtr nativeSession, internal_ARAnchorAdded anchorAddedCallback, 
+                                            internal_ARAnchorUpdated anchorUpdatedCallback, 
+                                            internal_ARAnchorRemoved anchorRemovedCallback);
+
+        [DllImport("__Internal")]
+        private static extern void session_SetUserAnchorCallbacks(IntPtr nativeSession, internal_ARUserAnchorAdded userAnchorAddedCallback, 
+                                            internal_ARUserAnchorUpdated userAnchorUpdatedCallback, 
+                                            internal_ARUserAnchorRemoved userAnchorRemovedCallback);
 	    [DllImport("__Internal")]
 	    private static extern void StartWorldTrackingSession(IntPtr nativeSession, ARKitWorldTackingSessionConfiguration configuration);
 
@@ -305,7 +321,10 @@ namespace UnityEngine.XR.iOS {
 		public UnityARSessionNativeInterface()
 		{
 #if !UNITY_EDITOR
-	        m_NativeARSession = unity_CreateNativeARSession(_frame_update, _anchor_added, _anchor_updated, _anchor_removed, _user_anchor_added, _user_anchor_updated, _user_anchor_removed, _ar_session_failed, _ar_session_interrupted, _ar_session_interruption_ended, _ar_tracking_changed);
+	        m_NativeARSession = unity_CreateNativeARSession();
+            session_SetSessionCallbacks(m_NativeARSession, _frame_update, _ar_session_failed, _ar_session_interrupted, _ar_session_interruption_ended, _ar_tracking_changed);
+            session_SetPlaneAnchorCallbacks(m_NativeARSession, _anchor_added, _anchor_updated, _anchor_removed);
+            session_SetUserAnchorCallbacks(m_NativeARSession, _user_anchor_added, _user_anchor_updated, _user_anchor_removed);
 #endif
 	    }
 		
