@@ -104,7 +104,7 @@ typedef struct
 typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
 typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
-typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(void* error);
+typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
 
 static inline ARWorldAlignment GetARWorldAlignmentFromUnityARAlignment(UnityARAlignment& unityAlignment)
 {
@@ -486,7 +486,7 @@ static CGAffineTransform s_CurAffineTransform;
 {
     if (_arSessionFailedCallback != NULL)
     {
-        _arSessionFailedCallback([[error localizedDescription] UTF8String]);
+        _arSessionFailedCallback(static_cast<const void*>([[error localizedDescription] UTF8String]);
     }
 }
 
