@@ -484,28 +484,24 @@ static CGAffineTransform s_CurAffineTransform;
 
 - (void)session:(ARSession *)session didFailWithError:(NSError *)error
 {
-    NSLog(@"AR FAIL");
     if (_arSessionFailedCallback != NULL)
     {
-        _arSessionFailedCallback((void*)"ar session failed");
+        _arSessionFailedCallback([[error localizedDescription] UTF8String]);
     }
 }
 
 - (void)session:(ARSession *)session didAddAnchors:(NSArray<ARAnchor*>*)anchors
 {
-    NSLog(@"AR ANCHOR ADDED");
     [self sendAnchorAddedEventToUnity:anchors];
 }
 
 - (void)session:(ARSession *)session didUpdateAnchors:(NSArray<ARAnchor*>*)anchors
 {
-    NSLog(@"AR ANCHOR UPDATE");
    [self sendAnchorUpdatedEventToUnity:anchors];
 }
 
 - (void)session:(ARSession *)session didRemoveAnchors:(NSArray<ARAnchor*>*)anchors
 {
-    NSLog(@"AR ANCHOR REMOVED");
    [self sendAnchorRemovedEventToUnity:anchors];
 }
 
@@ -698,7 +694,6 @@ extern "C" int HitTest(void* nativeSession, CGPoint point, ARHitTestResultType t
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
 
-    // this is what i want to use! why can't i?
      point = CGPointApplyAffineTransform(CGPointMake(point.x, 1.0f - point.y), CGAffineTransformInvert(s_CurAffineTransform));
      s_LastHitTestResults = [session->_session.currentFrame hitTest:point types:types];
 
