@@ -631,7 +631,7 @@ extern "C" void StopSession(void* nativeSession)
     [session teardownMetal];
 }
 
-extern "C" UnityARAnchorData SessionAddAnchor(void* nativeSession, UnityARAnchorData anchorData)
+extern "C" UnityARUserAnchorData SessionAddUserAnchor(void* nativeSession, UnityARUserAnchorData anchorData)
 {
     // create a native ARAnchor and add it to the session
     // then return the data back to the user that they will
@@ -640,12 +640,12 @@ extern "C" UnityARAnchorData SessionAddAnchor(void* nativeSession, UnityARAnchor
     ARAnchor *newAnchor = [[ARAnchor alloc] initWithTransform:matrix_identity_float4x4];
     
     [session->_session addAnchor:newAnchor];
-    UnityARAnchorData returnAnchorData;
-    UnityARAnchorDataFromARAnchorPtr(returnAnchorData, newAnchor);
+    UnityARUserAnchorData returnAnchorData;
+    UnityARUserAnchorDataFromARAnchorPtr(returnAnchorData, newAnchor);
     return returnAnchorData;
 }
 
-extern "C" void SessionRemoveAnchor(void* nativeSession, const char * anchorIdentifier)
+extern "C" void SessionRemoveUserAnchor(void* nativeSession, const char * anchorIdentifier)
 {
     // go through anchors and find the right one
     // then remove it from the session

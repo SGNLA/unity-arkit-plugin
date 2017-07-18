@@ -4,7 +4,6 @@ using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
 using AOT;
-using UnityEngine.XR.iOS;
 
 namespace UnityEngine.XR.iOS {
 
@@ -36,16 +35,6 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingStateReason trackingReason;
         public Vector3[] pointCloudData;
     };
-
-    public struct UnityARUserAnchorData
-	{
-		public IntPtr ptrIdentifier;
-
-		/**
- 		The transformation matrix that defines the anchor's rotation, translation and scale in world coordinates.
-		 */
-		public UnityARMatrix4x4 transform;
-    }
 
     public struct UnityARAnchorData
 	{
@@ -85,8 +74,31 @@ namespace UnityEngine.XR.iOS {
             ad.transform.column3 = matrix.GetColumn(3);
             return ad;
         }
+	};
 
-	}
+    public struct UnityARUserAnchorData 
+	{
+
+		public IntPtr ptrIdentifier;
+
+		/**
+ 		The transformation matrix that defines the anchor's rotation, translation and scale in world coordinates.
+		 */
+		public UnityARMatrix4x4 transform;
+
+		public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+
+        public static UnityARUserAnchorData UnityARUserAnchorDataFromGameObject(GameObject go) {
+            // create an anchor data struct from a game object transform
+            Matrix4x4 matrix = Matrix4x4.TRS(go.transform.position, go.transform.rotation, go.transform.localScale);
+            UnityARUserAnchorData ad = new UnityARUserAnchorData();
+            ad.transform.column0 = matrix.GetColumn(0);
+            ad.transform.column1 = matrix.GetColumn(1);
+            ad.transform.column2 = matrix.GetColumn(2);
+            ad.transform.column3 = matrix.GetColumn(3);
+            return ad;
+        }
+	};
 
     public struct UnityARHitTestResult
     {
@@ -122,7 +134,7 @@ namespace UnityEngine.XR.iOS {
         */
         public bool isValid;
 
-    }
+    };
 
 	public enum UnityARAlignment
 	{
@@ -278,10 +290,10 @@ namespace UnityEngine.XR.iOS {
 		private static extern void SetCameraNearFar (float nearZ, float farZ);
 
 		[DllImport("__Internal")]
-		private static extern UnityARAnchorData SessionAddAnchor (IntPtr nativeSession, UnityARAnchorData anchor);
+		private static extern UnityARUserAnchorData SessionAddUserAnchor (IntPtr nativeSession, UnityARUserAnchorData anchorData);
 
 		[DllImport("__Internal")]
-		private static extern void SessionRemoveAnchor (IntPtr nativeSession, [MarshalAs(UnmanagedType.LPStr)] string anchorIdentifier);
+		private static extern void SessionRemoveUserAnchor (IntPtr nativeSession, [MarshalAs(UnmanagedType.LPStr)] string anchorIdentifier);
 
 		public UnityARSessionNativeInterface()
 		{
@@ -453,7 +465,7 @@ namespace UnityEngine.XR.iOS {
 #endregion
 
 #region User Anchors
-	    [MonoPInvokeCallback(typeof(internal_ARAnchorAdded))]
+	    [MonoPInvokeCallback(typeof(internal_ARUserAnchorAdded))]
         static void _user_anchor_added(UnityARUserAnchorData anchor)
         {
             if (ARUserAnchorAddedEvent != null)
@@ -463,7 +475,7 @@ namespace UnityEngine.XR.iOS {
             }
         }
 
-	    [MonoPInvokeCallback(typeof(internal_ARAnchorUpdated))]
+	    [MonoPInvokeCallback(typeof(internal_ARUserAnchorUpdated))]
 	    static void _user_anchor_updated(UnityARUserAnchorData anchor)
         {
             if (ARUserAnchorUpdatedEvent != null)
@@ -472,7 +484,7 @@ namespace UnityEngine.XR.iOS {
 				ARUserAnchorUpdatedEvent(arUserAnchor); }
 	    }
 
-	    [MonoPInvokeCallback(typeof(internal_ARAnchorRemoved))]
+	    [MonoPInvokeCallback(typeof(internal_ARUserAnchorRemoved))]
 	    static void _user_anchor_removed(UnityARUserAnchorData anchor)
 	    {
             if (ARUserAnchorRemovedEvent != null)
@@ -574,29 +586,29 @@ namespace UnityEngine.XR.iOS {
             return GetYUVTexCoordScale();
         }
 
-        public UnityARAnchorData AddAnchor(UnityARAnchorData anchor)
+        public UnityARUserAnchorData AddUserAnchor(UnityARUserAnchorData anchorData)
         {
 #if !UNITY_EDITOR
-            return SessionAddAnchor(m_NativeARSession, anchor);
-#else
-            return new UnityARAnchorData();
+            return SessionAddUserAnchor(m_NativeARSession, anchorData);
+#else 
+            return new UnityARUserAnchorData();
 #endif
         }
 
-        public UnityARAnchorData AddAnchorFromGameObject(GameObject go) {
+        public UnityARUserAnchorData AddUserAnchorFromGameObject(GameObject go) {
 #if !UNITY_EDITOR
-            UnityARAnchorData data = AddAnchor(UnityARAnchorData.UnityARAnchorDataFromGameObject(go)); 
+            UnityARUserAnchorData data = AddUserAnchor(UnityARUserAnchorData.UnityARUserAnchorDataFromGameObject(go)); 
             return data;  
 #else 
-            return new UnityARAnchorData();
+            return new UnityARUserAnchorData();
 #endif
         }
 
-        public void RemoveAnchor(string anchorIdentifier)
+        public void RemoveUserAnchor(string anchorIdentifier)
         {
 #if !UNITY_EDITOR
 
-            SessionRemoveAnchor(m_NativeARSession, anchorIdentifier);
+            SessionRemoveUserAnchor(m_NativeARSession, anchorIdentifier);
 #endif
         }
 	}
