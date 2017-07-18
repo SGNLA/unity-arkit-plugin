@@ -577,43 +577,52 @@ static CGAffineTransform s_CurAffineTransform;
 
 /// Create the native mirror to the C# ARSession object
 
-extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallback, 
-                                            UNITY_AR_ANCHOR_CALLBACK anchorAddedCallback, 
-                                            UNITY_AR_ANCHOR_CALLBACK anchorUpdatedCallback, 
-                                            UNITY_AR_ANCHOR_CALLBACK anchorRemovedCallback, 
-                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorAddedCallback, 
-                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorUpdatedCallback, 
-                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorRemovedCallback, 
+extern "C" void* unity_CreateNativeARSession()
+{
+    UnityARSession *nativeSession = [[UnityARSession alloc] init];
+    nativeSession->_session = [ARSession new];
+    nativeSession->_session.delegate = nativeSession;
+    unityCameraNearZ = .01;
+    unityCameraFarZ = 30;
+    return (__bridge_retained void*)nativeSession;
+}
+
+extern "C" void session_SetSessionCallbacks(const void* session, UNITY_AR_FRAME_CALLBACK frameCallback,
                                             UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed,
                                             UNITY_AR_SESSION_VOID_CALLBACK sessionInterrupted,
                                             UNITY_AR_SESSION_VOID_CALLBACK sessionInterruptionEnded,
                                             UNITY_AR_SESSION_TRACKING_CHANGED trackingChanged)
 {
-    UnityARSession *nativeSession = [[UnityARSession alloc] init];
-    nativeSession->_session = [ARSession new];
-    nativeSession->_session.delegate = nativeSession;
-    nativeSession->_frameCallback = frameCallback;
-
-    UnityARAnchorCallbackWrapper* anchorCallbacks = [[UnityARAnchorCallbackWrapper alloc] init];
-    anchorCallbacks->_anchorAddedCallback = anchorAddedCallback;
-    anchorCallbacks->_anchorUpdatedCallback = anchorUpdatedCallback;
-    anchorCallbacks->_anchorRemovedCallback = anchorRemovedCallback;
-
-    UnityARUserAnchorCallbackWrapper* userAnchorCallbacks = [[UnityARUserAnchorCallbackWrapper alloc] init];
-    userAnchorCallbacks->_anchorAddedCallback = userAnchorAddedCallback;
-    userAnchorCallbacks->_anchorUpdatedCallback = userAnchorUpdatedCallback;
-    userAnchorCallbacks->_anchorRemovedCallback = userAnchorRemovedCallback;
-
-    [nativeSession->_classToCallbackMap setObject:anchorCallbacks forKey:[ARPlaneAnchor class]];
-    [nativeSession->_classToCallbackMap setObject:userAnchorCallbacks forKey:[ARAnchor class]];
-
+    UnityARSession* nativeSession = (__bridge UnityARSession*)session;
+    nativeSession->_frameCallback = frameCallback; 
     nativeSession->_arSessionFailedCallback = sessionFailed;
     nativeSession->_arSessionInterrupted = sessionInterrupted;
     nativeSession->_arSessionInterruptionEnded = sessionInterruptionEnded;
     nativeSession->_arSessionTrackingChanged = trackingChanged;
-    unityCameraNearZ = .01;
-    unityCameraFarZ = 30;
-    return (__bridge_retained void*)nativeSession;
+}
+
+extern "C" void session_SetPlaneAnchorCallbacks(const void* session, UNITY_AR_ANCHOR_CALLBACK anchorAddedCallback, 
+                                            UNITY_AR_ANCHOR_CALLBACK anchorUpdatedCallback, 
+                                            UNITY_AR_ANCHOR_CALLBACK anchorRemovedCallback)
+{
+    UnityARSession* nativeSession = (__bridge UnityARSession*)session;
+    UnityARAnchorCallbackWrapper* anchorCallbacks = [[UnityARAnchorCallbackWrapper alloc] init];
+    anchorCallbacks->_anchorAddedCallback = anchorAddedCallback;
+    anchorCallbacks->_anchorUpdatedCallback = anchorUpdatedCallback;
+    anchorCallbacks->_anchorRemovedCallback = anchorRemovedCallback;
+    [nativeSession->_classToCallbackMap setObject:anchorCallbacks forKey:[ARPlaneAnchor class]];
+}
+
+extern "C" void session_SetUserAnchorCallbacks(const void* session, UNITY_AR_USER_ANCHOR_CALLBACK userAnchorAddedCallback, 
+                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorUpdatedCallback, 
+                                            UNITY_AR_USER_ANCHOR_CALLBACK userAnchorRemovedCallback)
+{
+    UnityARSession* nativeSession = (__bridge UnityARSession*)session;
+    UnityARUserAnchorCallbackWrapper* userAnchorCallbacks = [[UnityARUserAnchorCallbackWrapper alloc] init];
+    userAnchorCallbacks->_anchorAddedCallback = userAnchorAddedCallback;
+    userAnchorCallbacks->_anchorUpdatedCallback = userAnchorUpdatedCallback;
+    userAnchorCallbacks->_anchorRemovedCallback = userAnchorRemovedCallback;
+    [nativeSession->_classToCallbackMap setObject:userAnchorCallbacks forKey:[ARAnchor class]];
 }
 
 extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitWorldTrackingSessionConfiguration unityConfig, UnityARSessionRunOptions runOptions)
