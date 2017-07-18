@@ -498,13 +498,10 @@ namespace UnityEngine.XR.iOS {
 	    [MonoPInvokeCallback(typeof(ARSessionFailed))]
 		static void _ar_session_failed(string error)
 		{
-	        Debug.Log("ar_session_failed");		
-
             if (ARSessionFailedEvent != null)
             {
                 ARSessionFailedEvent(error);
             }
-
 		}		
 
         public void RunWithConfigAndOptions(ARKitWorldTackingSessionConfiguration config, UnityARSessionRunOption runOptions)
@@ -551,7 +548,6 @@ namespace UnityEngine.XR.iOS {
 	    {
 #if !UNITY_EDITOR
 	        int numResults = HitTest(m_NativeARSession, point, types);
-	        Debug.Log(string.Format("HitTest results: {0}", numResults));
 	        List<ARHitTestResult> results = new List<ARHitTestResult>();
 		
 	        for (int i = 0; i < numResults; ++i)

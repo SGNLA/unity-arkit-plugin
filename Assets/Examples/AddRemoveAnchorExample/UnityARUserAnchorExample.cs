@@ -29,7 +29,6 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 	
 	public void ExampleAddAnchor(ARUserAnchor anchor)
 	{
-		Console.WriteLine("AnchorAddedExample: " + anchor.identifier);
 		if (m_Clones.Contains(anchor.identifier))
 		{
             Console.WriteLine("Our anchor was added!");
@@ -49,12 +48,9 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 	void Update () {
 		if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
 		{
-			Console.WriteLine("Before Instantiation");
 			GameObject clone = Instantiate(prefabObject, Camera.main.transform.position + (this.distanceFromCamera * Camera.main.transform.forward), Quaternion.identity);
-			Console.WriteLine("After Instantiation");
 			UnityARUserAnchorComponent component = clone.GetComponent<UnityARUserAnchorComponent>();
 			m_Clones.Add(component.AnchorId);
-			Console.WriteLine("Added Component to Game Object: " + component.AnchorId);
 			m_TimeUntilRemove = 4.0f;
 		}
 
