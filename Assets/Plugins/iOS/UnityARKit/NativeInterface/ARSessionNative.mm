@@ -105,8 +105,22 @@ typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
 typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
 typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
-typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(void* error);
 typedef void (*UNITY_AR_SESSION_VOID_CALLBACK)(void);
+typedef void (*UNITY_AR_SESSION_TRACKING_CHANGED)(UnityARCamera camera);
+
+// These don't all need to be static data, but no other better place for them at the moment.
+static id <MTLTexture> s_CapturedImageTextureY;
+static id <MTLTexture> s_CapturedImageTextureCbCr;
+static UnityARMatrix4x4 s_CameraProjectionMatrix;
+
+static float s_AmbientIntensity;
+static int s_TrackingQuality;
+static float s_ShaderScale;
+static const vector_float3* s_PointCloud;
+static NSUInteger s_PointCloudSize;
+
+static float unityCameraNearZ;
+static float unityCameraFarZ;
 
 static inline ARWorldAlignment GetARWorldAlignmentFromUnityARAlignment(UnityARAlignment& unityAlignment)
 {
@@ -214,6 +228,20 @@ inline void ARKitMatrixToUnityARMatrix4x4(const matrix_float4x4& matrixIn, Unity
     matrixOut->column3.w = c3.w;
 }
 
+
+static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, ARCamera* camera, BOOL getPointCloudData)
+{
+    CGSize nativeSize = GetAppController().rootView.bounds.size;
+    matrix_float4x4 projectionMatrix = [camera projectionMatrixWithViewportSize:nativeSize orientation:[[UIApplication sharedApplication] statusBarOrientation] zNear:(CGFloat)unityCameraNearZ zFar:(CGFloat)unityCameraFarZ];
+    
+    ARKitMatrixToUnityARMatrix4x4(projectionMatrix, &s_CameraProjectionMatrix);
+    ARKitMatrixToUnityARMatrix4x4(projectionMatrix, &unityARCamera.projectionMatrix);
+    
+    unityARCamera.trackingState = GetUnityARTrackingStateFromARTrackingState(camera.trackingState);
+    unityARCamera.trackingReason = GetUnityARTrackingReasonFromARTrackingReason(camera.trackingStateReason);
+    unityARCamera.getPointCloudData = getPointCloudData;
+}
+
 inline void UnityARAnchorDataFromARAnchorPtr(UnityARAnchorData& anchorData, ARPlaneAnchor* nativeAnchor)
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
@@ -233,19 +261,6 @@ inline void UnityARUserAnchorDataFromARAnchorPtr(UnityARUserAnchorData& anchorDa
     ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
 }
 
-// These don't all need to be static data, but no other better place for them at the moment.
-static id <MTLTexture> s_CapturedImageTextureY;
-static id <MTLTexture> s_CapturedImageTextureCbCr;
-static UnityARMatrix4x4 s_CameraProjectionMatrix;
-
-static float s_AmbientIntensity;
-static int s_TrackingQuality;
-static float s_ShaderScale;
-static const vector_float3* s_PointCloud;
-static NSUInteger s_PointCloudSize;
-
-static float unityCameraNearZ;
-static float unityCameraFarZ;
 
 @protocol UnityARAnchorEventDispatcher
 @required
@@ -330,6 +345,7 @@ static float unityCameraFarZ;
     UNITY_AR_SESSION_FAILED_CALLBACK _arSessionFailedCallback;
     UNITY_AR_SESSION_VOID_CALLBACK _arSessionInterrupted;
     UNITY_AR_SESSION_VOID_CALLBACK _arSessionInterruptionEnded;
+    UNITY_AR_SESSION_TRACKING_CHANGED _arSessionTrackingChanged;
 
     NSMutableDictionary* _classToCallbackMap;
     
@@ -383,13 +399,7 @@ static CGAffineTransform s_CurAffineTransform;
 
     UnityARCamera unityARCamera;
 
-    // TODO cgoy: remove s_CameraProjection and send it through callback -> make scripts subscribe to event.
-    ARKitMatrixToUnityARMatrix4x4(projectionMatrix, &s_CameraProjectionMatrix);
-    ARKitMatrixToUnityARMatrix4x4(projectionMatrix, &unityARCamera.projectionMatrix);
-
-    unityARCamera.trackingState = GetUnityARTrackingStateFromARTrackingState(frame.camera.trackingState);
-    unityARCamera.trackingReason = GetUnityARTrackingReasonFromARTrackingReason(frame.camera.trackingStateReason);
-    unityARCamera.getPointCloudData = _getPointCloudData;
+    GetUnityARCameraDataFromCamera(unityARCamera, frame.camera, _getPointCloudData);
 
     if (_frameCallback != NULL)
     {
@@ -518,6 +528,16 @@ static CGAffineTransform s_CurAffineTransform;
     }
 }
 
+- (void)session:(ARSession *)session cameraDidChangeTrackingState:(ARCamera *)camera
+{
+    if (_arSessionTrackingChanged != NULL)
+    {
+        UnityARCamera unityCamera;
+        GetUnityARCameraDataFromCamera(unityCamera, camera, _getPointCloudData);
+        _arSessionTrackingChanged(unityCamera);
+    }
+}
+
 - (void)sessionWasInterrupted:(ARSession *)session
 {
     if (_arSessionInterrupted != NULL)
@@ -566,7 +586,8 @@ extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallba
                                             UNITY_AR_USER_ANCHOR_CALLBACK userAnchorRemovedCallback, 
                                             UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed,
                                             UNITY_AR_SESSION_VOID_CALLBACK sessionInterrupted,
-                                            UNITY_AR_SESSION_VOID_CALLBACK sessionInterruptionEnded)
+                                            UNITY_AR_SESSION_VOID_CALLBACK sessionInterruptionEnded,
+                                            UNITY_AR_SESSION_TRACKING_CHANGED trackingChanged)
 {
     UnityARSession *nativeSession = [[UnityARSession alloc] init];
     nativeSession->_session = [ARSession new];
@@ -589,6 +610,7 @@ extern "C" void* unity_CreateNativeARSession(UNITY_AR_FRAME_CALLBACK frameCallba
     nativeSession->_arSessionFailedCallback = sessionFailed;
     nativeSession->_arSessionInterrupted = sessionInterrupted;
     nativeSession->_arSessionInterruptionEnded = sessionInterruptionEnded;
+    nativeSession->_arSessionTrackingChanged = trackingChanged;
     unityCameraNearZ = .01;
     unityCameraFarZ = 30;
     return (__bridge_retained void*)nativeSession;
