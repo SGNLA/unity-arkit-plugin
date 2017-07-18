@@ -486,7 +486,7 @@ static CGAffineTransform s_CurAffineTransform;
 {
     if (_arSessionFailedCallback != NULL)
     {
-        _arSessionFailedCallback(static_cast<const void*>([[error localizedDescription] UTF8String]);
+        _arSessionFailedCallback(static_cast<const void*>([[error localizedDescription] UTF8String]));
     }
 }
 
