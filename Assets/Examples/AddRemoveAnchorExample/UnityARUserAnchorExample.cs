@@ -22,12 +22,12 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 	private float m_TimeUntilRemove = 5.0f;
 
 	void  Awake() {
-		UnityARSessionNativeInterface.ARAnchorAddedEvent += ExampleAddAnchor;
-		UnityARSessionNativeInterface.ARAnchorRemovedEvent += AnchorRemoved;
+		UnityARSessionNativeInterface.ARUserAnchorAddedEvent += ExampleAddAnchor;
+		UnityARSessionNativeInterface.ARUserAnchorRemovedEvent += AnchorRemoved;
 		m_Clones = new HashSet<string>();
 	}
 	
-	public void ExampleAddAnchor(ARPlaneAnchor anchor)
+	public void ExampleAddAnchor(ARUserAnchor anchor)
 	{
 		Console.WriteLine("AnchorAddedExample: " + anchor.identifier);
 		if (m_Clones.Contains(anchor.identifier))
@@ -36,7 +36,7 @@ public class UnityARUserAnchorExample : MonoBehaviour {
 		}
 	}
 
-	public void AnchorRemoved(ARPlaneAnchor anchor)
+	public void AnchorRemoved(ARUserAnchor anchor)
 	{
 		if (m_Clones.Contains(anchor.identifier))
 		{
@@ -65,7 +65,7 @@ public class UnityARUserAnchorExample : MonoBehaviour {
             foreach (string id in m_Clones)
             {
                 Console.WriteLine("Removing anchor with id: " + id);
-                UnityARSessionNativeInterface.GetARSessionNativeInterface().RemoveAnchor(id);
+                UnityARSessionNativeInterface.GetARSessionNativeInterface().RemoveUserAnchor(id);
                 break;
             }
             m_TimeUntilRemove = 4.0f;

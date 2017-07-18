@@ -14,17 +14,16 @@ public class UnityARUserAnchorComponent : MonoBehaviour {
 
 	void Awake()
 	{
-		UnityARSessionNativeInterface.ARAnchorUpdatedEvent += GameObjectAnchorUpdated;
-		UnityARSessionNativeInterface.ARAnchorRemovedEvent += AnchorRemoved;
-		Console.WriteLine("Start in UnityARUserAnchorComponent");
-		this.m_AnchorId = UnityARSessionNativeInterface.GetARSessionNativeInterface ().AddAnchorFromGameObject(this.gameObject).identifierStr; 
+		UnityARSessionNativeInterface.ARUserAnchorUpdatedEvent += GameObjectAnchorUpdated;
+		UnityARSessionNativeInterface.ARUserAnchorRemovedEvent += AnchorRemoved;
+		this.m_AnchorId = UnityARSessionNativeInterface.GetARSessionNativeInterface ().AddUserAnchorFromGameObject(this.gameObject).identifierStr; 
 		Console.WriteLine("UnityARUserAnchorComponent.Start(): " + m_AnchorId);
 	}
 	void Start () {
 
 	}
 
-	public void AnchorRemoved(ARPlaneAnchor anchor)
+	public void AnchorRemoved(ARUserAnchor anchor)
 	{
 		Console.WriteLine("Anchor Being Removed: " + anchor.identifier);
 		Console.WriteLine("Our Anchor ID: " + m_AnchorId);
@@ -36,13 +35,13 @@ public class UnityARUserAnchorComponent : MonoBehaviour {
 	}
 
     void OnDestroy() {
-		UnityARSessionNativeInterface.ARAnchorUpdatedEvent -= GameObjectAnchorUpdated;
-		UnityARSessionNativeInterface.ARAnchorRemovedEvent -= AnchorRemoved;
+		UnityARSessionNativeInterface.ARUserAnchorUpdatedEvent -= GameObjectAnchorUpdated;
+		UnityARSessionNativeInterface.ARUserAnchorRemovedEvent -= AnchorRemoved;
 		Console.WriteLine("OnDestroy: " + this.m_AnchorId);
-		UnityARSessionNativeInterface.GetARSessionNativeInterface ().RemoveAnchor(this.m_AnchorId); 
+		UnityARSessionNativeInterface.GetARSessionNativeInterface ().RemoveUserAnchor(this.m_AnchorId); 
     }
 
-	private void GameObjectAnchorUpdated(ARPlaneAnchor anchor)
+	private void GameObjectAnchorUpdated(ARUserAnchor anchor)
 	{
 		
 	}
