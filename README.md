@@ -68,7 +68,22 @@ It also contains events that you can provide these delegates for:
         public delegate void ARSessionFailed(string error)
 ```
 
- 
+These are the list of events you can subscribe to:
+```
+#!C#
+		public static event ARFrameUpdate ARFrameUpdatedEvent;
+        public static event ARAnchorAdded ARAnchorAddedEvent;
+        public static event ARAnchorUpdated ARAnchorUpdatedEvent;
+        public static event ARAnchorRemoved ARAnchorRemovedEvent;
+        public static event ARAnchorAdded ARUserAnchorAddedEvent;
+        public static event ARAnchorUpdated ARUserAnchorUpdatedEvent;
+        public static event ARAnchorRemoved ARUserAnchorRemovedEvent;
+		public static event ARSessionCallback ARSessionInterruptedEvent;
+        public static event ARSessionCallback ARSessioninterruptionEndedEvent;
+		public static event ARSessionTrackingChanged ARSessionTrackingChangedEvent;
+
+```
+
 
 "/Assets/Plugins/iOS/UnityARKit/NativeInterface/AR*.cs" - these are the scripting API equivalents of data structures exposed by ARKit
 
@@ -81,6 +96,8 @@ It also contains events that you can provide these delegates for:
 "/Assets/Plugins/iOS/UnityARKit/UnityARCameraManager.cs" - this component should be placed on a gameobject in the scene that references the camera that you want to control via ARKit, and it will position and rotate the camera as well as provide the correct projection matrix to it based on updates from ARKit.  This component also has the code to initialize an ARKit session.
 
 "/Assets/Plugins/iOS/UnityARKit/UnityARVideo.cs" - this component should be placed on the camera and grabs the textures needed for rendering the video, and sets it on the material needed for blitting to the backbuffer, and sets up the command buffer to do the actual blit
+
+"/Asses/Plugins/iOS?UnityARKit/UnityARUserAnchorComponent.cs" - this component adds and removes Anchors from ARKit based on the lifecycle of the GameObject it's added to.
 
 You should be able to build the UnityARKitScene.unity to iOS to get a taste of what ARKit is capable of.  It demostrates all the basic functionality of the ARKit in this scene.  
 
