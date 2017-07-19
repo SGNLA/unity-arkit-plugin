@@ -20,7 +20,10 @@ namespace UnityEngine.XR.iOS
 		Vector3 vectorReceived = Vector3.zero;
 		string othermessage = "none";
 
-		Texture2D remoteScreenTex;
+		Texture2D remoteScreenYTex;
+		Texture2D remoteScreenUVTex;
+
+		bool bTexturesInitialized;
 
 		// Use this for initialization
 		void Start () {
@@ -28,6 +31,7 @@ namespace UnityEngine.XR.iOS
 			toEditorMessageid = new System.Guid("000000000000000000000000000000e1");
 			toEditorMessageid2 = new System.Guid("000000000000000000000000000000e2");
 
+			bTexturesInitialized = false;
 			//put some defaults so that it doesnt complain
 			UnityARCamera scamera = new UnityARCamera ();
 			scamera.worldTransform = new UnityARMatrix4x4 (new Vector4 (1, 0, 0, 0), new Vector4 (0, 1, 0, 0), new Vector4 (0, 0, 1, 0), new Vector4 (0, 0, 0, 1));
@@ -35,6 +39,7 @@ namespace UnityEngine.XR.iOS
 			scamera.projectionMatrix = new UnityARMatrix4x4 (projMat.GetColumn(0),projMat.GetColumn(1),projMat.GetColumn(2),projMat.GetColumn(3));
 
 			UnityARSessionNativeInterface.SetStaticCamera (scamera);
+
 
 			editorConnection = EditorConnection.instance;
 			editorConnection.Initialize ();
@@ -48,8 +53,6 @@ namespace UnityEngine.XR.iOS
 			editorConnection.Register (ConnectionMessageIds.removePlaneAnchorMsgeId, RemovePlaneAnchor);
 			editorConnection.Register (ConnectionMessageIds.screenCaptureYMsgId, ReceiveRemoteScreenYTex);
 			editorConnection.Register (ConnectionMessageIds.screenCaptureUVMsgId, ReceiveRemoteScreenUVTex);
-
-			remoteScreenTex = new Texture2D (2, 2); //LoadImage will resize to fit
 
 			SendInitToPlayer ();
 		}
@@ -105,21 +108,33 @@ namespace UnityEngine.XR.iOS
 			Debug.Log("EditorMessageHandler");
 		}
 
+		void InitializeTextures(UnityARCamera camera)
+		{
+			int yWidth = camera.videoParams.yWidth;
+			int yHeight = camera.videoParams.yHeight;
+			int uvWidth = yWidth / 2;
+			int uvHeight = yHeight / 2;
+			remoteScreenYTex = new Texture2D(yWidth,yHeight, TextureFormat.R8, false, true);
+			remoteScreenUVTex = new Texture2D(uvWidth,uvHeight, TextureFormat.RG16, false, true);
+
+			bTexturesInitialized = true;
+		}
+
 		void UpdateCameraFrame(MessageEventArgs mea)
 		{
-			//Debug.Log("UpdateCameraFrame");
 			serializableUnityARCamera serCamera = mea.data.Deserialize<serializableUnityARCamera> ();
 
 			UnityARCamera scamera = new UnityARCamera ();
-			//scamera.worldTransform = worldTransform;
 			scamera = serCamera;
+
+			InitializeTextures (scamera);
+
 			UnityARSessionNativeInterface.SetStaticCamera (scamera);
 			UnityARSessionNativeInterface.RunFrameUpdateCallbacks ();
 		}
 
 		void AddPlaneAnchor(MessageEventArgs mea)
 		{
-			//Debug.Log("AddPlaneAnchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = mea.data.Deserialize<serializableUnityARPlaneAnchor> ();
 
 			ARPlaneAnchor arPlaneAnchor = serPlaneAnchor;
@@ -128,8 +143,6 @@ namespace UnityEngine.XR.iOS
 
 		void UpdatePlaneAnchor(MessageEventArgs mea)
 		{
-			//Debug.Log("UpdatePlaneAnchor");
-
 			serializableUnityARPlaneAnchor serPlaneAnchor = mea.data.Deserialize<serializableUnityARPlaneAnchor> ();
 
 			ARPlaneAnchor arPlaneAnchor = serPlaneAnchor;
@@ -138,8 +151,6 @@ namespace UnityEngine.XR.iOS
 
 		void RemovePlaneAnchor(MessageEventArgs mea)
 		{
-			//Debug.Log("RemovePlaneAnchor");
-
 			serializableUnityARPlaneAnchor serPlaneAnchor = mea.data.Deserialize<serializableUnityARPlaneAnchor> ();
 
 			ARPlaneAnchor arPlaneAnchor = serPlaneAnchor;
@@ -148,29 +159,30 @@ namespace UnityEngine.XR.iOS
 
 		void ReceiveRemoteScreenYTex(MessageEventArgs mea)
 		{
-			remoteScreenTex = new Texture2D(1280,720, TextureFormat.R8, false, true);
-			remoteScreenTex.LoadRawTextureData(mea.data);
-			remoteScreenTex.Apply ();
+			if (!bTexturesInitialized)
+				return;
+			remoteScreenYTex.LoadRawTextureData(mea.data);
+			remoteScreenYTex.Apply ();
 			UnityARVideo arVideo = Camera.main.GetComponent<UnityARVideo>();
 			if (arVideo) {
-				//arVideo.m_EditorRemoteTexture = remoteScreenTex;
-				arVideo.SetYTexure(remoteScreenTex);
+				arVideo.SetYTexure(remoteScreenYTex);
 			}
 
 		}
 
 		void ReceiveRemoteScreenUVTex(MessageEventArgs mea)
 		{
-			remoteScreenTex = new Texture2D(640,360, TextureFormat.RG16, false, true);
-			remoteScreenTex.LoadRawTextureData(mea.data);
-			remoteScreenTex.Apply ();
+			if (!bTexturesInitialized)
+				return;
+			remoteScreenUVTex.LoadRawTextureData(mea.data);
+			remoteScreenUVTex.Apply ();
 			UnityARVideo arVideo = Camera.main.GetComponent<UnityARVideo>();
 			if (arVideo) {
-				//arVideo.m_EditorRemoteTexture = remoteScreenTex;
-				arVideo.SetUVTexure(remoteScreenTex);
+				arVideo.SetUVTexure(remoteScreenUVTex);
 			}
 
 		}
+
 
 		void EditorMessageHandler2(MessageEventArgs mea)
 		{
@@ -197,9 +209,7 @@ namespace UnityEngine.XR.iOS
 
 		void SendToPlayer(System.Guid msgId, byte[] data)
 		{
-			//if (editorConnection.ConnectedPlayers.Find (cp => cp.PlayerId == currentPlayerID) != null) {
-				editorConnection.Send (msgId, data);
-			//}
+			editorConnection.Send (msgId, data);
 		}
 
 

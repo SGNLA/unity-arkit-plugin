@@ -10,14 +10,9 @@ namespace UnityEngine.XR.iOS
 	{
 		public ConnectToEditor connectToEditor;
 
-		private CommandBuffer m_VideoCommandBuffer;
-		private Texture2D _videoTextureY;
-		private Texture2D _videoTextureCbCr;
-
 		private UnityARSessionNativeInterface m_Session;
-		private bool bCommandBufferInitialized;
+		private bool bTexturesInitialized;
 
-		private RenderTexture [] m_copyTexturesY;
 		private int currentFrameIndex;
 		private byte[] m_textureYBytes;
 		private byte[] m_textureUVBytes;
@@ -31,13 +26,32 @@ namespace UnityEngine.XR.iOS
 		public void Start()
 		{
 			m_Session = UnityARSessionNativeInterface.GetARSessionNativeInterface ();
+			UnityARSessionNativeInterface.ARFrameUpdatedEvent += UpdateCamera;
 			currentFrameIndex = 0;
-			m_textureYBytes = new byte[1280 * 720];
-			m_textureUVBytes = new byte[640 * 360 * 2];
-			m_textureYBytes2 = new byte[1280 * 720];
-			m_textureUVBytes2 = new byte[640 * 360 * 2];
+			bTexturesInitialized = false;
+		}
+
+		void UpdateCamera(UnityARCamera camera)
+		{
+			if (!bTexturesInitialized) {
+				InitializeTextures (camera);
+			}
+			UnityARSessionNativeInterface.ARFrameUpdatedEvent -= UpdateCamera;
+
+		}
+
+		void InitializeTextures(UnityARCamera camera)
+		{
+			int numYBytes = camera.videoParams.yWidth * camera.videoParams.yHeight;
+			int numUVBytes = camera.videoParams.yWidth * camera.videoParams.yHeight / 2; //quarter resolution, but two bytes per pixel
+			
+			m_textureYBytes = new byte[numYBytes];
+			m_textureUVBytes = new byte[numUVBytes];
+			m_textureYBytes2 = new byte[numYBytes];
+			m_textureUVBytes2 = new byte[numUVBytes];
 			m_pinnedYArray = GCHandle.Alloc (m_textureYBytes);
 			m_pinnedUVArray = GCHandle.Alloc (m_textureUVBytes);
+			bTexturesInitialized = true;
 		}
 
 		IntPtr PinByteArray(ref GCHandle handle, byte[] array)
@@ -64,7 +78,7 @@ namespace UnityEngine.XR.iOS
 
 		void OnDestroy()
 		{
-			m_Session.SetCapturePixelData (false, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
+			m_Session.SetCapturePixelData (false, IntPtr.Zero, IntPtr.Zero);
 
 			m_pinnedYArray.Free ();
 			m_pinnedUVArray.Free ();
@@ -78,16 +92,20 @@ namespace UnityEngine.XR.iOS
 			{
 				return;
 			}
+
+			if (!bTexturesInitialized)
+				return;
+			
 			currentFrameIndex = (currentFrameIndex + 1) % 2;
 
 			Resolution currentResolution = Screen.currentResolution;
 
 
-			m_Session.SetCapturePixelData (true, PinByteArray(ref m_pinnedYArray,YByteArrayForFrame(currentFrameIndex)), PinByteArray(ref m_pinnedUVArray,UVByteArrayForFrame(currentFrameIndex)), IntPtr.Zero);
+			m_Session.SetCapturePixelData (true, PinByteArray(ref m_pinnedYArray,YByteArrayForFrame(currentFrameIndex)), PinByteArray(ref m_pinnedUVArray,UVByteArrayForFrame(currentFrameIndex)));
 
 			connectToEditor.SendToEditor (ConnectionMessageIds.screenCaptureYMsgId, YByteArrayForFrame(1-currentFrameIndex));
 			connectToEditor.SendToEditor (ConnectionMessageIds.screenCaptureUVMsgId, UVByteArrayForFrame(1-currentFrameIndex));
-
+			
 		}
 		#endif
 	}
