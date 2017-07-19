@@ -97,7 +97,7 @@ These are the list of events you can subscribe to:
 
 "/Assets/Plugins/iOS/UnityARKit/UnityARVideo.cs" - this component should be placed on the camera and grabs the textures needed for rendering the video, and sets it on the material needed for blitting to the backbuffer, and sets up the command buffer to do the actual blit
 
-"/Asses/Plugins/iOS?UnityARKit/UnityARUserAnchorComponent.cs" - this component adds and removes Anchors from ARKit based on the lifecycle of the GameObject it's added to.
+"/Assest/Plugins/iOS/UnityARKit/UnityARUserAnchorComponent.cs" - this component adds and removes Anchors from ARKit based on the lifecycle of the GameObject it's added to.
 
 You should be able to build the UnityARKitScene.unity to iOS to get a taste of what ARKit is capable of.  It demostrates all the basic functionality of the ARKit in this scene.  
 
