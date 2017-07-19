@@ -36,3 +36,8 @@ UnityAROcclusion.unity: This scene shows how to occlude virtual objects by using
 
 GeneratePlanes GO now creates instances of an occluderPlanePrefab which uses uses an occlusionPlaneMaterial, which in turn uses a MobileOcclusion.shader. The material has its renderqueue set to "Geometry-10", and so renders before any other geometry in the scene.  The shader then writes to the depth buffer only, so any objects rendered behind this object will be rejected by the ztest and not render.
 
+
+UnityARUserAnchorScene:  This scene is an example of how someone could use the add/removeAnchor API.  As you tap around in the world, a checkered cube will be added 1 meter away from the front vector of the camera.  The cubes will start to disapear after 4 seconds.  
+
+A new component exists named UnityARUserAnchorComponent that you can add to GameObjects.  This component will automatically add/remove anchors to/from ARKit based on the object's lifecycle.  
+
