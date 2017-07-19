@@ -24,12 +24,24 @@ namespace UnityEngine.XR.iOS {
 		}
     };
 
+	[Serializable]
+	public struct UnityVideoParams
+	{
+		public int yWidth;
+		public int yHeight;
+		public int screenOrientation;
+		public float texCoordScale;
+		public IntPtr cvPixelBufferPtr;
+	};
+
+
     struct internal_UnityARCamera
     {
         public UnityARMatrix4x4 worldTransform;
         public UnityARMatrix4x4 projectionMatrix;
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
+		public UnityVideoParams videoParams;
         public uint getPointCloudData;
     };
 
@@ -39,17 +51,20 @@ namespace UnityEngine.XR.iOS {
         public UnityARMatrix4x4 projectionMatrix;
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
+		public UnityVideoParams videoParams;
         public Vector3[] pointCloudData;
 
-		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr)
+		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp)
 		{
 			worldTransform = wt;
 			projectionMatrix = pm;
 			trackingState = ats;
 			trackingReason = atsr;
+			videoParams = uvp;
 			pointCloudData = null;
 		}
     };
+
 
     public struct UnityARAnchorData
 	{
@@ -255,7 +270,7 @@ namespace UnityEngine.XR.iOS {
 		private static extern void SetCameraNearFar (float nearZ, float farZ);
 
 		[DllImport("__Internal")]
-		private static extern void CapturePixelData (int enable, IntPtr  pYPixelBytes, IntPtr pUVPixelBytes, IntPtr cvPixelBufferPtr);
+		private static extern void CapturePixelData (int enable, IntPtr  pYPixelBytes, IntPtr pUVPixelBytes);
 
 		public UnityARSessionNativeInterface()
 		{
@@ -342,11 +357,11 @@ namespace UnityEngine.XR.iOS {
 #endif
 		}
 
-		public void SetCapturePixelData(bool enable, IntPtr pYByteArray, IntPtr pUVByteArray, IntPtr cvPixelBufferPtr)
+		public void SetCapturePixelData(bool enable, IntPtr pYByteArray, IntPtr pUVByteArray)
 		{
-			int iEnable = enable ? 1 : 0;
 #if !UNITY_EDITOR
-			CapturePixelData (iEnable,pYByteArray, pUVByteArray, cvPixelBufferPtr);
+			int iEnable = enable ? 1 : 0;
+			CapturePixelData (iEnable,pYByteArray, pUVByteArray);
 #endif
 		}
 
@@ -358,6 +373,7 @@ namespace UnityEngine.XR.iOS {
             pubCamera.worldTransform = camera.worldTransform;
             pubCamera.trackingState = camera.trackingState;
             pubCamera.trackingReason = camera.trackingReason;
+			pubCamera.videoParams = camera.videoParams;
             s_Camera = pubCamera;
 
             if (camera.getPointCloudData == 1)
@@ -543,6 +559,7 @@ namespace UnityEngine.XR.iOS {
 			return GetTrackingQuality();
 		}
         
+		//deprecated
         public float GetARYUVTexCoordScale()
         {
             return GetYUVTexCoordScale();

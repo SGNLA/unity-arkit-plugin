@@ -34,31 +34,16 @@ namespace UnityEngine.XR.iOS
 			playerConnection.Register(firstmessageid, FirstMessageHandler);
 			playerConnection.Register(ConnectionMessageIds.initARKitSessionMsgId, InitializeARKit);
 
-
+			m_session = null;
 
 		}
 
-//		void OnGUI()
-//		{
-//			if (GUI.Button(new Rect(300, 20, 400, 100), "Send Test"))
-//			{
-//				SendTestToEditor();
-//			}
-//
-//			if (GUI.Button(new Rect(300, 150, 400, 100), "Send Test 2"))
-//			{
-//				SendTest2ToEditor();
-//			}
-//
-//			if (GUI.Button(new Rect(300, 400, 400, 100), "Disconnect"))
-//			{
-//				DisconnectFromEditor();
-//			}
-//
-//			string guiMessage = "message:" + message;
-//
-//			GUI.Box(new Rect(300, 300, 400, 50), guiMessage);
-//		}
+		void OnGUI()
+		{
+			if (m_session == null) {	
+				GUI.Box (new Rect (300, 300, 400, 50), "Waiting for editor connection...");
+			}
+		}
 
 		void FirstMessageHandler(MessageEventArgs mea)
 		{
@@ -96,7 +81,6 @@ namespace UnityEngine.XR.iOS
 
 		public void ARFrameUpdated(UnityARCamera camera)
 		{
-			//Debug.Log("sending camera");
 			serializableUnityARCamera serARCamera = camera;
 			SendToEditor(ConnectionMessageIds.updateCameraFrameMsgId, serARCamera);
 
@@ -104,21 +88,18 @@ namespace UnityEngine.XR.iOS
 
 		public void ARAnchorAdded(ARPlaneAnchor planeAnchor)
 		{
-			//Debug.Log("adding anchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = planeAnchor;
 			SendToEditor (ConnectionMessageIds.addPlaneAnchorMsgeId, serPlaneAnchor);
 		}
 
 		public void ARAnchorUpdated(ARPlaneAnchor planeAnchor)
 		{
-			//Debug.Log("updating anchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = planeAnchor;
 			SendToEditor (ConnectionMessageIds.updatePlaneAnchorMsgeId, serPlaneAnchor);
 		}
 
 		public void ARAnchorRemoved(ARPlaneAnchor planeAnchor)
 		{
-			//Debug.Log("removing anchor");
 			serializableUnityARPlaneAnchor serPlaneAnchor = planeAnchor;
 			SendToEditor (ConnectionMessageIds.removePlaneAnchorMsgeId, serPlaneAnchor);
 		}
@@ -137,6 +118,15 @@ namespace UnityEngine.XR.iOS
 			{
 				editorID = -1;
 			}
+
+			DisconnectFromEditor ();
+			#if !UNITY_EDITOR
+			if (m_session != null)
+			{
+				m_session.Pause();
+				m_session = null;
+			}
+			#endif
 		}
 
 		public void SendTestToEditor()
