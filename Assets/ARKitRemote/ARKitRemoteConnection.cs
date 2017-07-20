@@ -9,7 +9,7 @@ using UnityEditor.Networking.PlayerConnection;
 
 namespace UnityEngine.XR.iOS
 {
-	public class ConnectToPlayer : MonoBehaviour
+	public class ARKitRemoteConnection : MonoBehaviour
 	{
 		EditorConnection editorConnection ;
 
