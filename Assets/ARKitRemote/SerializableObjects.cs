@@ -135,26 +135,27 @@ namespace Utils
 		public ARTrackingState trackingState;
 		public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
+		public serializablePointCloud pointCloud;
 
 
-
-		public serializableUnityARCamera( serializableUnityARMatrix4x4 wt, serializableUnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp)
+		public serializableUnityARCamera( serializableUnityARMatrix4x4 wt, serializableUnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, serializablePointCloud spc)
 		{
 			worldTransform = wt;
 			projectionMatrix = pm;
 			trackingState = ats;
 			trackingReason = atsr;
 			videoParams = uvp;
+			pointCloud = spc;
 		}
 
 		public static implicit operator serializableUnityARCamera(UnityARCamera rValue)
 		{
-			return new serializableUnityARCamera(rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams);
+			return new serializableUnityARCamera(rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams, rValue.pointCloudData);
 		}
 
 		public static implicit operator UnityARCamera(serializableUnityARCamera rValue)
 		{
-			return new UnityARCamera (rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams);
+			return new UnityARCamera (rValue.worldTransform, rValue.projectionMatrix, rValue.trackingState, rValue.trackingReason, rValue.videoParams, rValue.pointCloud);
 		}
 
 
@@ -201,5 +202,59 @@ namespace Utils
 			return retValue;
 		}
 
+	};
+
+	[Serializable]
+	public class serializablePointCloud
+	{
+		public byte [] pointCloudData;
+
+		public serializablePointCloud(byte [] inputPoints)
+		{
+			pointCloudData = inputPoints;
+		}
+
+		public static implicit operator serializablePointCloud(Vector3 [] vecPointCloud)
+		{
+			if (vecPointCloud != null)
+			{
+				byte [] createBuf = new byte[vecPointCloud.Length * sizeof(float) * 3];
+				for(int i = 0; i < vecPointCloud.Length; i++)
+				{
+					int bufferStart = i * 3;
+					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].x ), 0, createBuf, (bufferStart)*sizeof(float), sizeof(float) );
+					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].y ), 0, createBuf, (bufferStart+1)*sizeof(float), sizeof(float) );
+					Buffer.BlockCopy( BitConverter.GetBytes( vecPointCloud[i].z ), 0, createBuf, (bufferStart+2)*sizeof(float), sizeof(float) );
+
+				}
+				return new serializablePointCloud (createBuf);
+			}
+			else 
+			{
+				return new serializablePointCloud(null);
+			}
+		}
+
+		public static implicit operator Vector3 [] (serializablePointCloud spc)
+		{
+			if (spc.pointCloudData != null) 
+			{
+				int numVectors = spc.pointCloudData.Length / (3 * sizeof(float));
+				Vector3 [] pointCloudVec = new Vector3[numVectors];
+				for (int i = 0; i < numVectors; i++) 
+				{
+					int bufferStart = i * 3;
+					pointCloudVec [i].x = BitConverter.ToSingle (spc.pointCloudData, (bufferStart) * sizeof(float));
+					pointCloudVec [i].y = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+1) * sizeof(float));
+					pointCloudVec [i].z = BitConverter.ToSingle (spc.pointCloudData, (bufferStart+2) * sizeof(float));
+					
+				}
+				return pointCloudVec;
+			} 
+			else 
+			{
+				return null;
+			}
+		}
 	};
 }

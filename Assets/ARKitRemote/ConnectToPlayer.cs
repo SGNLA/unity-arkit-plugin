@@ -13,12 +13,8 @@ namespace UnityEngine.XR.iOS
 	{
 		EditorConnection editorConnection ;
 
-		System.Guid firstmessageid;
-		System.Guid toEditorMessageid;
-		System.Guid toEditorMessageid2;
 		int currentPlayerID = -1;
-		Vector3 vectorReceived = Vector3.zero;
-		string othermessage = "none";
+		string guimessage = "none";
 
 		Texture2D remoteScreenYTex;
 		Texture2D remoteScreenUVTex;
@@ -27,9 +23,6 @@ namespace UnityEngine.XR.iOS
 
 		// Use this for initialization
 		void Start () {
-			firstmessageid = new System.Guid("000000000000000000000000000000a1");
-			toEditorMessageid = new System.Guid("000000000000000000000000000000e1");
-			toEditorMessageid2 = new System.Guid("000000000000000000000000000000e2");
 
 			bTexturesInitialized = false;
 			//put some defaults so that it doesnt complain
@@ -45,8 +38,6 @@ namespace UnityEngine.XR.iOS
 			editorConnection.Initialize ();
 			editorConnection.RegisterConnection (PlayerConnected);
 			editorConnection.RegisterDisconnection (PlayerDisconnected);
-			editorConnection.Register (toEditorMessageid, EditorMessageHandler);
-			editorConnection.Register (toEditorMessageid2, EditorMessageHandler2);
 			editorConnection.Register (ConnectionMessageIds.updateCameraFrameMsgId, UpdateCameraFrame);
 			editorConnection.Register (ConnectionMessageIds.addPlaneAnchorMsgeId, AddPlaneAnchor);
 			editorConnection.Register (ConnectionMessageIds.updatePlaneAnchorMsgeId, UpdatePlaneAnchor);
@@ -54,7 +45,6 @@ namespace UnityEngine.XR.iOS
 			editorConnection.Register (ConnectionMessageIds.screenCaptureYMsgId, ReceiveRemoteScreenYTex);
 			editorConnection.Register (ConnectionMessageIds.screenCaptureUVMsgId, ReceiveRemoteScreenUVTex);
 
-			SendInitToPlayer ();
 		}
 
 		void PlayerConnected(int playerID)
@@ -65,29 +55,24 @@ namespace UnityEngine.XR.iOS
 
 		void OnGUI()
 		{
-			if (GUI.Button (new Rect (300, 20, 400, 100), "Send Test")) {
-				SendTestToPlayer ();
+			
+			if (!bTexturesInitialized) 
+			{
+				if (currentPlayerID != -1) {
+					guimessage = "Connected to ARKit Remote device : " + currentPlayerID.ToString ();
+
+					if (GUI.Button (new Rect ((Screen.width / 2) - 200, (Screen.height / 2) - 200, 400, 100), "Start Remote ARKit Session")) 
+					{
+						SendInitToPlayer ();
+					}
+				} 
+				else 
+				{
+					guimessage = "Please connect to player in the console menu";
+				}
+
+				GUI.Box (new Rect ((Screen.width / 2) - 200, (Screen.height / 2) + 100, 400, 50), guimessage);
 			}
-
-			if (GUI.Button (new Rect (300, 140, 400, 100), "Send Init")) {
-				SendInitToPlayer ();
-			}
-
-
-			if (currentPlayerID != -1) {
-				GUI.Box (new Rect (300, 250, 400, 50), currentPlayerID.ToString());
-			}
-
-			string guiMessage = string.Format("vector: {0},{1},{2}", vectorReceived.x, vectorReceived.y, vectorReceived.z);
-
-			GUI.Box (new Rect (400, 320, 400, 50), guiMessage);
-
-			GUI.Box (new Rect (0, 320, 400, 50), othermessage);
-
-			Matrix4x4 matrix = UnityARSessionNativeInterface.GetARSessionNativeInterface().GetCameraPose();
-			Vector4 position = UnityARMatrixOps.GetPosition(matrix);
-
-			GUI.Box (new Rect (0, 20, 250, 200), position.ToString ());
 
 		}
 
@@ -103,10 +88,6 @@ namespace UnityEngine.XR.iOS
 			editorConnection.DisconnectAll ();
 		}
 
-		void EditorMessageHandler(MessageEventArgs mea)
-		{
-			Debug.Log("EditorMessageHandler");
-		}
 
 		void InitializeTextures(UnityARCamera camera)
 		{
@@ -184,27 +165,12 @@ namespace UnityEngine.XR.iOS
 		}
 
 
-		void EditorMessageHandler2(MessageEventArgs mea)
-		{
-			if (mea.playerId == currentPlayerID) {
-				othermessage = ASCIIEncoding.ASCII.GetString(mea.data);
-			}
-		}
-
-		void SendTestToPlayer()
-		{
-			// Input string.
-			const string input = "Hello Player";
-			byte[] array = Encoding.ASCII.GetBytes(input);
-			SendToPlayer (firstmessageid, array);
-		}
-
 		void SendInitToPlayer()
 		{
 			// Input string.
-			const string input = "Hello Player 2";
+			const string input = "InitARKit";
 			byte[] array = Encoding.ASCII.GetBytes(input);
-			SendToPlayer (ConnectionMessageIds.initARKitSessionMsgId, array);
+			SendToPlayer (ConnectionMessageIds.fromEditorARKitSessionMsgId, array);
 		}
 
 		void SendToPlayer(System.Guid msgId, byte[] data)

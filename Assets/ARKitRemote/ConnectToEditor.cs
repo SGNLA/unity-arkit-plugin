@@ -10,12 +10,7 @@ namespace UnityEngine.XR.iOS
 	{
 		PlayerConnection playerConnection;
 		UnityARSessionNativeInterface m_session;
-		string message;
 		int editorID;
-
-		System.Guid firstmessageid;
-		System.Guid toEditorMessageid;
-		System.Guid toEditorMessageid2;
 
 		Texture2D frameBufferTex;
 
@@ -23,17 +18,11 @@ namespace UnityEngine.XR.iOS
 		void Start()
 		{
 			Debug.Log("STARTING ConnectToEditor");
-			message = "none";
 			editorID = -1;
-			firstmessageid = new System.Guid("000000000000000000000000000000a1");
-			toEditorMessageid = new System.Guid("000000000000000000000000000000e1");
-			toEditorMessageid2 = new System.Guid("000000000000000000000000000000e2");
 			playerConnection = PlayerConnection.instance;
 			playerConnection.RegisterConnection(EditorConnected);
 			playerConnection.RegisterDisconnection(EditorDisconnected);
-			playerConnection.Register(firstmessageid, FirstMessageHandler);
-			playerConnection.Register(ConnectionMessageIds.initARKitSessionMsgId, InitializeARKit);
-
+			playerConnection.Register(ConnectionMessageIds.fromEditorARKitSessionMsgId, InitializeARKit);
 			m_session = null;
 
 		}
@@ -41,26 +30,14 @@ namespace UnityEngine.XR.iOS
 		void OnGUI()
 		{
 			if (m_session == null) {	
-				GUI.Box (new Rect (300, 300, 400, 50), "Waiting for editor connection...");
+				GUI.Box (new Rect ((Screen.width / 2) - 200, (Screen.height / 2), 400, 50), "Waiting for editor connection...");
 			}
 		}
 
-		void FirstMessageHandler(MessageEventArgs mea)
-		{
-			Debug.Log("received first message");
-			//if (mea.playerId == currentPlayerID) 
-			{
-				message = ASCIIEncoding.ASCII.GetString(mea.data);
-				editorID = mea.playerId;
-				 
-				InitializeARKit(mea);
-			}
-		}
 
 		void InitializeARKit(MessageEventArgs mea)
 		{
 			Debug.Log("init ARKit");
-			message = "Connected... init ARKit";
 			#if !UNITY_EDITOR
 			Application.targetFrameRate = 60;
 			m_session = UnityARSessionNativeInterface.GetARSessionNativeInterface();
@@ -129,18 +106,6 @@ namespace UnityEngine.XR.iOS
 			#endif
 		}
 
-		public void SendTestToEditor()
-		{
-			Debug.Log("sending vector4");
-			byte[] array = Encoding.ASCII.GetBytes("Hello Editor");
-			SendToEditor(toEditorMessageid,array );
-		}
-
-		public void SendTest2ToEditor()
-		{
-			byte[] arrayToSend = Encoding.ASCII.GetBytes("Hello Editor");
-			SendToEditor(toEditorMessageid2, arrayToSend);
-		}
 
 		public void SendToEditor(System.Guid msgId, object serializableObject)
 		{
@@ -152,7 +117,6 @@ namespace UnityEngine.XR.iOS
 		{
 			if (playerConnection.isConnected)
 			{
-				//Debug.Log("Editor is connected.. sending");
 				playerConnection.Send(msgId, data);
 			}
 
@@ -162,11 +126,6 @@ namespace UnityEngine.XR.iOS
 		public void DisconnectFromEditor()
 		{
 			playerConnection.DisconnectAll();
-		}
-
-		// Update is called once per frame
-		void Update()
-		{
 		}
 
 
