@@ -4,7 +4,6 @@ using UnityEngine;
 using System;
 using System.Runtime.InteropServices;
 using AOT;
-using UnityEngine.XR.iOS;
 
 namespace UnityEngine.XR.iOS {
 
@@ -92,7 +91,43 @@ namespace UnityEngine.XR.iOS {
          */
         public Vector4 extent;
 
-	}
+        public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+
+        public static UnityARAnchorData UnityARAnchorDataFromGameObject(GameObject go) {
+            // create an anchor data struct from a game object transform
+            Matrix4x4 matrix = Matrix4x4.TRS(go.transform.position, go.transform.rotation, go.transform.localScale);
+            UnityARAnchorData ad = new UnityARAnchorData();
+            ad.transform.column0 = matrix.GetColumn(0);
+            ad.transform.column1 = matrix.GetColumn(1);
+            ad.transform.column2 = matrix.GetColumn(2);
+            ad.transform.column3 = matrix.GetColumn(3);
+            return ad;
+        }
+	};
+
+    public struct UnityARUserAnchorData 
+	{
+
+		public IntPtr ptrIdentifier;
+
+		/**
+ 		The transformation matrix that defines the anchor's rotation, translation and scale in world coordinates.
+		 */
+		public UnityARMatrix4x4 transform;
+
+		public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+
+        public static UnityARUserAnchorData UnityARUserAnchorDataFromGameObject(GameObject go) {
+            // create an anchor data struct from a game object transform
+            Matrix4x4 matrix = Matrix4x4.TRS(go.transform.position, go.transform.rotation, go.transform.localScale);
+            UnityARUserAnchorData ad = new UnityARUserAnchorData();
+            ad.transform.column0 = matrix.GetColumn(0);
+            ad.transform.column1 = matrix.GetColumn(1);
+            ad.transform.column2 = matrix.GetColumn(2);
+            ad.transform.column3 = matrix.GetColumn(3);
+            return ad;
+        }
+	};
 
     public struct UnityARHitTestResult
     {
@@ -128,7 +163,7 @@ namespace UnityEngine.XR.iOS {
         */
         public bool isValid;
 
-    }
+    };
 
 	public enum UnityARAlignment
 	{
@@ -201,6 +236,7 @@ namespace UnityEngine.XR.iOS {
 //	    public delegate void ARFrameUpdate(UnityARMatrix4x4 cameraPos, UnityARMatrix4x4 projection);
 //        public static event ARFrameUpdate ARFrameUpdatedEvent;
 
+        // Plane Anchors
         public delegate void ARFrameUpdate(UnityARCamera camera);
         public static event ARFrameUpdate ARFrameUpdatedEvent;
 
@@ -213,13 +249,33 @@ namespace UnityEngine.XR.iOS {
 	    public delegate void ARAnchorRemoved(ARPlaneAnchor anchorData);
         public static event ARAnchorRemoved ARAnchorRemovedEvent;
 
+        // User Anchors
+		public delegate void ARUserAnchorAdded(ARUserAnchor anchorData);
+        public static event ARUserAnchorAdded ARUserAnchorAddedEvent;
+
+	    public delegate void ARUserAnchorUpdated(ARUserAnchor anchorData);
+        public static event ARUserAnchorUpdated ARUserAnchorUpdatedEvent;
+
+	    public delegate void ARUserAnchorRemoved(ARUserAnchor anchorData);
+        public static event ARUserAnchorRemoved ARUserAnchorRemovedEvent;
+
 		public delegate void ARSessionFailed(string error);
         public static event ARSessionFailed ARSessionFailedEvent;
+
+        public delegate void ARSessionCallback();
+        public static event ARSessionCallback ARSessionInterruptedEvent;
+        public static event ARSessionCallback ARSessioninterruptionEndedEvent;
+        public delegate void ARSessionTrackingChanged(UnityARCamera camera);
+        public static event ARSessionTrackingChanged ARSessionTrackingChangedEvent;
 
         delegate void internal_ARFrameUpdate(internal_UnityARCamera camera);
 		public delegate void internal_ARAnchorAdded(UnityARAnchorData anchorData);
 	    public delegate void internal_ARAnchorUpdated(UnityARAnchorData anchorData);
 	    public delegate void internal_ARAnchorRemoved(UnityARAnchorData anchorData);
+		public delegate void internal_ARUserAnchorAdded(UnityARUserAnchorData anchorData);
+	    public delegate void internal_ARUserAnchorUpdated(UnityARUserAnchorData anchorData);
+	    public delegate void internal_ARUserAnchorRemoved(UnityARUserAnchorData anchorData);
+        delegate void internal_ARSessionTrackingChanged(internal_UnityARCamera camera);
 
 #if !UNITY_EDITOR
 	    private IntPtr m_NativeARSession;
@@ -228,8 +284,24 @@ namespace UnityEngine.XR.iOS {
 	    private static UnityARCamera s_Camera;
 		
 	    [DllImport("__Internal")]
-        private static extern IntPtr unity_CreateNativeARSession(internal_ARFrameUpdate frameUpdate, internal_ARAnchorAdded anchorAdded, internal_ARAnchorUpdated anchorUpdated, internal_ARAnchorRemoved anchorRemoved, ARSessionFailed sessionFailed);
+        private static extern IntPtr unity_CreateNativeARSession();
 
+        [DllImport("__Internal")]
+        private static extern void session_SetSessionCallbacks(IntPtr nativeSession, internal_ARFrameUpdate frameCallback,
+                                            ARSessionFailed sessionFailed,
+                                            ARSessionCallback sessionInterrupted,
+                                            ARSessionCallback sessionInterruptionEnded,
+                                            internal_ARSessionTrackingChanged trackingChanged);
+
+        [DllImport("__Internal")]
+        private static extern void session_SetPlaneAnchorCallbacks(IntPtr nativeSession, internal_ARAnchorAdded anchorAddedCallback, 
+                                            internal_ARAnchorUpdated anchorUpdatedCallback, 
+                                            internal_ARAnchorRemoved anchorRemovedCallback);
+
+        [DllImport("__Internal")]
+        private static extern void session_SetUserAnchorCallbacks(IntPtr nativeSession, internal_ARUserAnchorAdded userAnchorAddedCallback, 
+                                            internal_ARUserAnchorUpdated userAnchorUpdatedCallback, 
+                                            internal_ARUserAnchorRemoved userAnchorRemovedCallback);
 	    [DllImport("__Internal")]
 	    private static extern void StartWorldTrackingSession(IntPtr nativeSession, ARKitWorldTackingSessionConfiguration configuration);
 
@@ -272,10 +344,19 @@ namespace UnityEngine.XR.iOS {
 		[DllImport("__Internal")]
 		private static extern void CapturePixelData (int enable, IntPtr  pYPixelBytes, IntPtr pUVPixelBytes);
 
+		[DllImport("__Internal")]
+		private static extern UnityARUserAnchorData SessionAddUserAnchor (IntPtr nativeSession, UnityARUserAnchorData anchorData);
+
+		[DllImport("__Internal")]
+		private static extern void SessionRemoveUserAnchor (IntPtr nativeSession, [MarshalAs(UnmanagedType.LPStr)] string anchorIdentifier);
+
 		public UnityARSessionNativeInterface()
 		{
 #if !UNITY_EDITOR
-	        m_NativeARSession = unity_CreateNativeARSession(_frame_update, _anchor_added, _anchor_updated, _anchor_removed, _ar_session_failed);
+	        m_NativeARSession = unity_CreateNativeARSession();
+            session_SetSessionCallbacks(m_NativeARSession, _frame_update, _ar_session_failed, _ar_session_interrupted, _ar_session_interruption_ended, _ar_tracking_changed);
+            session_SetPlaneAnchorCallbacks(m_NativeARSession, _anchor_added, _anchor_updated, _anchor_removed);
+            session_SetUserAnchorCallbacks(m_NativeARSession, _user_anchor_added, _user_anchor_updated, _user_anchor_removed);
 #endif
 	    }
 		
@@ -387,6 +468,18 @@ namespace UnityEngine.XR.iOS {
             }
 	    }
 
+        [MonoPInvokeCallback(typeof(internal_ARSessionTrackingChanged))]
+	    static void _ar_tracking_changed(internal_UnityARCamera camera)
+	    {
+            // we only update the current camera's tracking state since that's all 
+            // this cllback is for
+            s_Camera.trackingReason = camera.trackingReason;
+            if (ARSessionTrackingChangedEvent != null)
+            {
+                ARSessionTrackingChangedEvent(s_Camera);
+            }
+	    }
+
         static void UpdatePointCloudData(ref UnityARCamera camera)
         {
             IntPtr ptrResultVerts = IntPtr.Zero;
@@ -430,6 +523,22 @@ namespace UnityEngine.XR.iOS {
 			return arPlaneAnchor;
 		}
 
+		static ARUserAnchor GetUserAnchorFromAnchorData(UnityARUserAnchorData anchor)
+		{
+			//get the identifier for this anchor from the pointer
+			ARUserAnchor arUserAnchor = new ARUserAnchor ();
+            arUserAnchor.identifier = Marshal.PtrToStringAuto(anchor.ptrIdentifier);
+
+			Matrix4x4 matrix = new Matrix4x4 ();
+	        matrix.SetColumn(0, anchor.transform.column0);
+	        matrix.SetColumn(1, anchor.transform.column1);
+	        matrix.SetColumn(2, anchor.transform.column2);
+	        matrix.SetColumn(3, anchor.transform.column3);
+
+	        arUserAnchor.transform =  matrix;
+			return arUserAnchor;
+		}
+
         static ARHitTestResult GetHitTestResultFromResultData(UnityARHitTestResult resultData)
         {
             ARHitTestResult arHitTestResult = new ARHitTestResult ();
@@ -444,6 +553,7 @@ namespace UnityEngine.XR.iOS {
             return arHitTestResult;
         }
 
+#region Plane Anchors
 	    [MonoPInvokeCallback(typeof(internal_ARAnchorAdded))]
         static void _anchor_added(UnityARAnchorData anchor)
         {
@@ -472,18 +582,68 @@ namespace UnityEngine.XR.iOS {
                 ARAnchorRemovedEvent(arPlaneAnchor);
             }
 	    }
+#endregion
+
+#region User Anchors
+	    [MonoPInvokeCallback(typeof(internal_ARUserAnchorAdded))]
+        static void _user_anchor_added(UnityARUserAnchorData anchor)
+        {
+            if (ARUserAnchorAddedEvent != null)
+            {
+				ARUserAnchor arUserAnchor = GetUserAnchorFromAnchorData(anchor);
+				ARUserAnchorAddedEvent(arUserAnchor);
+            }
+        }
+
+	    [MonoPInvokeCallback(typeof(internal_ARUserAnchorUpdated))]
+	    static void _user_anchor_updated(UnityARUserAnchorData anchor)
+        {
+            if (ARUserAnchorUpdatedEvent != null)
+            {
+				ARUserAnchor arUserAnchor = GetUserAnchorFromAnchorData(anchor);
+				ARUserAnchorUpdatedEvent(arUserAnchor); }
+	    }
+
+	    [MonoPInvokeCallback(typeof(internal_ARUserAnchorRemoved))]
+	    static void _user_anchor_removed(UnityARUserAnchorData anchor)
+	    {
+            if (ARUserAnchorRemovedEvent != null)
+            {
+				ARUserAnchor arUserAnchor = GetUserAnchorFromAnchorData(anchor);
+                ARUserAnchorRemovedEvent(arUserAnchor);
+            }
+	    }
+#endregion
 
 	    [MonoPInvokeCallback(typeof(ARSessionFailed))]
 		static void _ar_session_failed(string error)
 		{
-	        Debug.Log("ar_session_failed");		
-
             if (ARSessionFailedEvent != null)
             {
                 ARSessionFailedEvent(error);
             }
-
 		}		
+
+	    [MonoPInvokeCallback(typeof(ARSessionCallback))]
+		static void _ar_session_interrupted()
+		{
+	        Debug.Log("ar_session_interrupted");
+            if (ARSessionInterruptedEvent != null)
+            {
+                ARSessionInterruptedEvent();
+            }
+
+        }
+
+	    [MonoPInvokeCallback(typeof(ARSessionCallback))]
+		static void _ar_session_interruption_ended()
+		{
+	        Debug.Log("ar_session_interruption_ended");
+            if (ARSessioninterruptionEndedEvent != null)
+            {
+                ARSessioninterruptionEndedEvent();
+            }
+		}
 
         public void RunWithConfigAndOptions(ARKitWorldTackingSessionConfiguration config, UnityARSessionRunOption runOptions)
         {
@@ -529,7 +689,6 @@ namespace UnityEngine.XR.iOS {
 	    {
 #if !UNITY_EDITOR
 	        int numResults = HitTest(m_NativeARSession, point, types);
-	        Debug.Log(string.Format("HitTest results: {0}", numResults));
 	        List<ARHitTestResult> results = new List<ARHitTestResult>();
 		
 	        for (int i = 0; i < numResults; ++i)
@@ -563,6 +722,32 @@ namespace UnityEngine.XR.iOS {
         public float GetARYUVTexCoordScale()
         {
             return GetYUVTexCoordScale();
+        }
+
+        public UnityARUserAnchorData AddUserAnchor(UnityARUserAnchorData anchorData)
+        {
+#if !UNITY_EDITOR
+            return SessionAddUserAnchor(m_NativeARSession, anchorData);
+#else 
+            return new UnityARUserAnchorData();
+#endif
+        }
+
+        public UnityARUserAnchorData AddUserAnchorFromGameObject(GameObject go) {
+#if !UNITY_EDITOR
+            UnityARUserAnchorData data = AddUserAnchor(UnityARUserAnchorData.UnityARUserAnchorDataFromGameObject(go)); 
+            return data;  
+#else 
+            return new UnityARUserAnchorData();
+#endif
+        }
+
+        public void RemoveUserAnchor(string anchorIdentifier)
+        {
+#if !UNITY_EDITOR
+
+            SessionRemoveUserAnchor(m_NativeARSession, anchorIdentifier);
+#endif
         }
 	}
 }
