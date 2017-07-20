@@ -9,7 +9,6 @@ namespace UnityEngine.XR.iOS
     public class UnityARVideo : MonoBehaviour
     {
         public Material m_ClearMaterial;
-		public Texture m_EditorRemoteTexture;
 
         private CommandBuffer m_VideoCommandBuffer;
         private Texture2D _videoTextureY;

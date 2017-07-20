@@ -4,7 +4,7 @@ namespace UnityEngine.XR.iOS
 {
 	public static class ConnectionMessageIds
 	{
-		public static Guid initARKitSessionMsgId { get { return new Guid("523bb5dd-163b-4e5b-9271-d18a50e8897e"); } }
+		public static Guid fromEditorARKitSessionMsgId { get { return new Guid("523bb5dd-163b-4e5b-9271-d18a50e8897e"); } }
 		public static Guid updateCameraFrameMsgId { get { return new Guid("6d8c39bf-279a-46cf-91f4-9827a44443af"); } }
 		public static Guid addPlaneAnchorMsgeId { get { return new Guid("a435cdb9-fa85-4d3c-9d3f-57fa85f62da3"); } }
 		public static Guid updatePlaneAnchorMsgeId { get { return new Guid("84d5ad8d-e7f9-432c-ae5d-40717790a12f"); } }
