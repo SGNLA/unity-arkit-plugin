@@ -122,7 +122,16 @@ namespace Utils
 
 		public static implicit operator Matrix4x4(serializableUnityARMatrix4x4 rValue)
 		{
+			#if UNITY_2017_1_OR_NEWER		
 			return new Matrix4x4(rValue.column0, rValue.column1, rValue.column2, rValue.column3);
+			#else
+			Matrix4x4 mRet = new Matrix4x4 ();
+			mRet.SetColumn (0, rValue.column0);
+			mRet.SetColumn (1, rValue.column1);
+			mRet.SetColumn (2, rValue.column2);
+			mRet.SetColumn (3, rValue.column3);
+			return mRet;
+			#endif
 		}
 
 	};

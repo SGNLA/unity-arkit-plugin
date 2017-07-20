@@ -125,7 +125,9 @@ namespace UnityEngine.XR.iOS
 
 		public void DisconnectFromEditor()
 		{
+			#if UNITY_2017_1_OR_NEWER		
 			playerConnection.DisconnectAll();
+			#endif
 		}
 
 
