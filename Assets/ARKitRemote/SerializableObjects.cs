@@ -266,4 +266,52 @@ namespace Utils
 			}
 		}
 	};
+
+	[Serializable]
+	public class serializableARSessionConfiguration
+	{
+		public UnityARAlignment alignment; 
+		public UnityARPlaneDetection planeDetection;
+		public bool getPointCloudData;
+		public bool enableLightEstimation;
+
+		public serializableARSessionConfiguration(UnityARAlignment align, UnityARPlaneDetection planeDet, bool getPtCloud, bool enableLightEst)
+		{
+			alignment = align;
+			planeDetection = planeDet;
+			getPointCloudData = getPtCloud;
+			enableLightEstimation = enableLightEst;
+		}
+
+		public static implicit operator serializableARSessionConfiguration(ARKitWorldTackingSessionConfiguration awtsc)
+		{
+			return new serializableARSessionConfiguration (awtsc.alignment, awtsc.planeDetection, awtsc.getPointCloudData, awtsc.enableLightEstimation);
+		}
+
+		public static implicit operator ARKitWorldTackingSessionConfiguration (serializableARSessionConfiguration sasc)
+		{
+			return new ARKitWorldTackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation);
+		}
+	};
+
+	[Serializable]
+	public class serializableARKitInit
+	{
+		public serializableARSessionConfiguration config;
+		public UnityARSessionRunOption runOption;
+
+		public serializableARKitInit(serializableARSessionConfiguration cfg, UnityARSessionRunOption option)
+		{
+			config = cfg;
+			runOption = option;
+		}
+	};
+
+	[Serializable]
+	public class serializableFromEditorMessage
+	{
+		public Guid subMessageId;
+		public serializableARKitInit arkitConfigMsg;
+
+	};
 }
