@@ -11,6 +11,16 @@ namespace UnityEngine.XR.iOS
 {
 	public class ARKitRemoteConnection : MonoBehaviour
 	{
+		[Header("AR Config Options")]
+		public UnityARAlignment startAlignment = UnityARAlignment.UnityARAlignmentGravity;
+		public UnityARPlaneDetection planeDetection = UnityARPlaneDetection.Horizontal;
+		public bool getPointCloud = true;
+		public bool enableLightEstimation = true;
+
+		[Header("Run Options")]
+		public bool resetTracking = true;
+		public bool removeExistingAnchors = true;
+
 		EditorConnection editorConnection ;
 
 		int currentPlayerID = -1;
@@ -162,15 +172,24 @@ namespace UnityEngine.XR.iOS
 
 		void SendInitToPlayer()
 		{
-			// Input string.
-			const string input = "InitARKit";
-			byte[] array = Encoding.ASCII.GetBytes(input);
-			SendToPlayer (ConnectionMessageIds.fromEditorARKitSessionMsgId, array);
+			serializableFromEditorMessage sfem = new serializableFromEditorMessage ();
+			sfem.subMessageId = SubMessageIds.editorInitARKit;
+			serializableARSessionConfiguration ssc = new serializableARSessionConfiguration (startAlignment, planeDetection, getPointCloud, enableLightEstimation); 
+			UnityARSessionRunOption roTracking = resetTracking ? UnityARSessionRunOption.ARSessionRunOptionResetTracking : 0;
+			UnityARSessionRunOption roAnchors = removeExistingAnchors ? UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors : 0;
+			sfem.arkitConfigMsg = new serializableARKitInit (ssc, roTracking | roAnchors);
+			SendToPlayer (ConnectionMessageIds.fromEditorARKitSessionMsgId, sfem);
 		}
 
 		void SendToPlayer(System.Guid msgId, byte[] data)
 		{
 			editorConnection.Send (msgId, data);
+		}
+
+		public void SendToPlayer(System.Guid msgId, object serializableObject)
+		{
+			byte[] arrayToSend = serializableObject.SerializeToByteArray ();
+			SendToPlayer (msgId, arrayToSend);
 		}
 
 
