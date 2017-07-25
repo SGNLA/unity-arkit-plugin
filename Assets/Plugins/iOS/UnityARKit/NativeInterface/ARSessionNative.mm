@@ -102,6 +102,7 @@ typedef struct
     UnityARTrackingState trackingState;
     UnityARTrackingReason trackingReason;
     UnityVideoParams videoParams;
+    float ambientIntensity;
     uint32_t getPointCloudData;
 } UnityARCamera;
 
@@ -431,6 +432,8 @@ static CGAffineTransform s_CurAffineTransform;
     float screenAspect = nativeBounds.size.height / nativeBounds.size.width;
     unityARCamera.videoParams.texCoordScale =  screenAspect / imageAspect;
     s_ShaderScale = screenAspect / imageAspect;
+    
+    unityARCamera.ambientIntensity = frame.lightEstimate.ambientIntensity;
     
     unityARCamera.videoParams.yWidth = imageWidth;
     unityARCamera.videoParams.yHeight = imageHeight;
