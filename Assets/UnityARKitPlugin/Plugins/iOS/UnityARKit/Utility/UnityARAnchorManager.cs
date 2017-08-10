@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DataStructures.Hybrid;
+using Collections.Hybrid.Generic;
 
 namespace UnityEngine.XR.iOS
 {
@@ -60,9 +60,9 @@ namespace UnityEngine.XR.iOS
             planeAnchorMap.Clear ();
         }
 
-		public IEnumerable<ARPlaneAnchorGameObject> GetCurrentPlaneAnchors()
+		public LinkedList<ARPlaneAnchorGameObject> GetCurrentPlaneAnchors()
 		{
-			return planeAnchorMap;
+			return planeAnchorMap.Values;
 		}
 	}
 }
