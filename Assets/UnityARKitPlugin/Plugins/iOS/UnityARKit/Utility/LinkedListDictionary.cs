@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace DataStructures.Hybrid
+namespace Collections.Hybrid.Generic
 {
 	/// <summary>
 	/// LinkedList/Dictionary combo for constant time add/remove/contains. Memory usage is higher as expected.
@@ -9,7 +9,7 @@ namespace DataStructures.Hybrid
 	/// </summary>
 	/// <typeparam name="TK">key value type. It is recomended that this be "int", for speed purposes.</typeparam>
 	/// <typeparam name="TV">The value type. Can be anything you like.</typeparam>
-	public class LinkedListDictionary<TK, TV> : IEnumerable<TV>
+	public class LinkedListDictionary<TK, TV>
 	{
 		private readonly Dictionary<TK, LLEntry> dictionary = new Dictionary<TK, LLEntry>();
 		private readonly LinkedList<TV> list = new LinkedList<TV>();
@@ -81,14 +81,16 @@ namespace DataStructures.Hybrid
 			set { Add(k, value); }
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+		/// <summary>
+		/// Raw list of Values for garbage-free iteration. Do not modify.
+		/// </summary>
+		/// <value>The values</value>
+		public LinkedList<TV> Values
 		{
-			return GetEnumerator();
-		}
-
-		public IEnumerator<TV> GetEnumerator()
-		{
-			return list.GetEnumerator();
+			get
+			{
+				return list;
+			}
 		}
 
 		public void Clear()
