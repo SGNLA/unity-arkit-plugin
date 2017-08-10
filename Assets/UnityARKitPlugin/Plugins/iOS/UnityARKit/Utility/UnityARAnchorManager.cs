@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DataStructures.Hybrid;
 
 namespace UnityEngine.XR.iOS
 {
@@ -8,12 +9,12 @@ namespace UnityEngine.XR.iOS
 	{
 
 
-		private Dictionary<string, ARPlaneAnchorGameObject> planeAnchorMap;
+		private LinkedListDictionary<string, ARPlaneAnchorGameObject> planeAnchorMap;
 
 
         public UnityARAnchorManager ()
 		{
-			planeAnchorMap = new Dictionary<string,ARPlaneAnchorGameObject> ();
+			planeAnchorMap = new LinkedListDictionary<string,ARPlaneAnchorGameObject> ();
 			UnityARSessionNativeInterface.ARAnchorAddedEvent += AddAnchor;
 			UnityARSessionNativeInterface.ARAnchorUpdatedEvent += UpdateAnchor;
 			UnityARSessionNativeInterface.ARAnchorRemovedEvent += RemoveAnchor;
@@ -59,9 +60,9 @@ namespace UnityEngine.XR.iOS
             planeAnchorMap.Clear ();
         }
 
-		public List<ARPlaneAnchorGameObject> GetCurrentPlaneAnchors()
+		public IEnumerable<ARPlaneAnchorGameObject> GetCurrentPlaneAnchors()
 		{
-			return planeAnchorMap.Values.ToList ();
+			return planeAnchorMap;
 		}
 	}
 }
