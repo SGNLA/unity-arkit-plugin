@@ -9,8 +9,6 @@ public class UnityARCameraManager : MonoBehaviour {
     private UnityARSessionNativeInterface m_session;
 	private Material savedClearMaterial;
 
-	public float m_Scale = 1.0f;
-
 	// Use this for initialization
 	void Start () {
 
