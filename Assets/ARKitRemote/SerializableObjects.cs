@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.XR.iOS;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Utils
 {
@@ -270,6 +271,68 @@ namespace Utils
 	};
 
 	[Serializable]
+	public class serializableARHitTestResult
+	{
+		public ARHitTestResultType stype;
+		public double sdistance;
+		public serializableUnityARMatrix4x4 slocalTransform;
+		public serializableUnityARMatrix4x4 sworldTransform;
+		//public System.Guid anchorGuid;
+
+		//public serializableARHitTestResult(ARHitTestResultType type, double distance, Matrix4x4 localTransform, Matrix4x4 worldTransform, System.Guid guid)
+		public serializableARHitTestResult(ARHitTestResultType type, double distance, Matrix4x4 localTransform, Matrix4x4 worldTransform)
+		{
+			stype = type;
+			sdistance = distance;
+			slocalTransform = localTransform;
+			sworldTransform = worldTransform;
+			//anchorGuid = guid;
+		}
+
+		public static implicit operator serializableARHitTestResult(ARHitTestResult arHitTestResult)
+		{
+			//return new serializableARHitTestResult (arHitTestResult.type, arHitTestResult.distance, arHitTestResult.localTransform,
+			//	arHitTestResult.worldTransform, new System.Guid (arHitTestResult.anchorIdentifier));
+			return new serializableARHitTestResult (arHitTestResult.type, arHitTestResult.distance, arHitTestResult.localTransform,
+				arHitTestResult.worldTransform);
+		}
+
+		public static implicit operator ARHitTestResult(serializableARHitTestResult hitTestResult)
+		{
+			ARHitTestResult newResult =  new ARHitTestResult ();
+			newResult.type = hitTestResult.stype;
+			newResult.distance = hitTestResult.sdistance;
+			newResult.localTransform = hitTestResult.slocalTransform;
+			newResult.worldTransform = hitTestResult.sworldTransform;
+			//newResult.anchorIdentifier = hitTestResult.anchorGuid.ToString ();
+			newResult.isValid = true;
+			return newResult;
+		}
+	}
+
+	[Serializable]
+	public class serializableHitTestResults
+	{
+		public int numResults;
+		public serializableARHitTestResult [] hitTestResults;
+
+		public serializableHitTestResults (List<ARHitTestResult> listResults)
+		{
+			numResults = listResults.Count;
+			if (numResults > 0)
+			{
+				hitTestResults = new serializableARHitTestResult[numResults];
+				int index = 0;
+				foreach (ARHitTestResult ahtr in listResults) {
+					hitTestResults [index] = ahtr;
+					index++;
+				}
+				
+			}
+		}
+	}
+
+	[Serializable]
 	public class serializableARSessionConfiguration
 	{
 		public UnityARAlignment alignment; 
@@ -310,10 +373,23 @@ namespace Utils
 	};
 
 	[Serializable]
+	public class serializableHitTestQuery
+	{
+		public ARPoint arPoint;
+		public ARHitTestResultType hitTypes;
+
+		public serializableHitTestQuery(ARPoint pt, ARHitTestResultType ht)
+		{
+			arPoint = pt;
+			hitTypes = ht;
+		}
+	};
+
+	[Serializable]
 	public class serializableFromEditorMessage
 	{
 		public Guid subMessageId;
 		public serializableARKitInit arkitConfigMsg;
-
+		public serializableHitTestQuery arHitTestQuery;
 	};
 }

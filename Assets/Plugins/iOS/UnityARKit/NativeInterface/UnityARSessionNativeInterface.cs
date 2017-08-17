@@ -689,9 +689,9 @@ namespace UnityEngine.XR.iOS {
 #endif
 	    }
 
+#if !UNITY_EDITOR
 	    public List<ARHitTestResult> HitTest(ARPoint point, ARHitTestResultType types)
 	    {
-#if !UNITY_EDITOR
 	        int numResults = HitTest(m_NativeARSession, point, types);
 	        List<ARHitTestResult> results = new List<ARHitTestResult>();
 		
@@ -702,10 +702,9 @@ namespace UnityEngine.XR.iOS {
 	        }
 
 	        return results;
-#else
-            return new List<ARHitTestResult>();
-#endif
 	    }
+#endif
+
 		
 		public ARTextureHandles GetARVideoTextureHandles()
 		{
