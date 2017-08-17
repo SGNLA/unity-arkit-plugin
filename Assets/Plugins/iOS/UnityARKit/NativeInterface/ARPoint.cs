@@ -2,6 +2,7 @@
 
 namespace UnityEngine.XR.iOS
 {
+	[Serializable]
 	public struct ARPoint
 	{
 		public double x;

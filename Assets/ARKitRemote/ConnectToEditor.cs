@@ -24,7 +24,9 @@ namespace UnityEngine.XR.iOS
 			playerConnection.RegisterDisconnection(EditorDisconnected);
 			playerConnection.Register(ConnectionMessageIds.fromEditorARKitSessionMsgId, HandleEditorMessage);
 			m_session = null;
-
+			#if !UNITY_EDITOR
+			gameObject.AddComponent<RemoteHitTestManager>();
+			#endif
 		}
 
 		void OnGUI()
@@ -38,8 +40,13 @@ namespace UnityEngine.XR.iOS
 		{
 			serializableFromEditorMessage sfem = mea.data.Deserialize<serializableFromEditorMessage>();
 			if (sfem != null && sfem.subMessageId == SubMessageIds.editorInitARKit) {
-				InitializeARKit ( sfem.arkitConfigMsg );
+				InitializeARKit (sfem.arkitConfigMsg);
+			} 
+			#if !UNITY_EDITOR
+			else if (sfem != null && sfem.subMessageId == SubMessageIds.editorHitTestQuery) {
+				RemoteHitTestManager.globalHitTestManager.HandleEditorMessage (sfem);
 			}
+			#endif
 		}
 
 		void InitializeARKit(serializableARKitInit sai)

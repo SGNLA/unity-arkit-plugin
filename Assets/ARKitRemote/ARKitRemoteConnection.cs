@@ -1,10 +1,9 @@
-﻿using UnityEngine;
-using UnityEngine.Networking.PlayerConnection;
+﻿
+#if UNITY_EDITOR
+using UnityEngine;
+using UnityEngine.Networking.PlayerConnection; 
 using System.Text;
 using Utils; 
-
-#if UNITY_EDITOR
- 
 using UnityEditor.Networking.PlayerConnection;
 
 namespace UnityEngine.XR.iOS
@@ -47,6 +46,8 @@ namespace UnityEngine.XR.iOS
 			editorConnection.Register (ConnectionMessageIds.removePlaneAnchorMsgeId, RemovePlaneAnchor);
 			editorConnection.Register (ConnectionMessageIds.screenCaptureYMsgId, ReceiveRemoteScreenYTex);
 			editorConnection.Register (ConnectionMessageIds.screenCaptureUVMsgId, ReceiveRemoteScreenUVTex);
+
+			gameObject.AddComponent<RemoteHitTestManager>();
 
 		}
 
