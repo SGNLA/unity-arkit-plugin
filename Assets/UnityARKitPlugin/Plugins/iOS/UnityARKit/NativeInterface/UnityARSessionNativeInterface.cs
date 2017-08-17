@@ -689,23 +689,29 @@ namespace UnityEngine.XR.iOS {
 #endif
 	    }
 
-	    public List<ARHitTestResult> HitTest(ARPoint point, ARHitTestResultType types)
-	    {
-#if !UNITY_EDITOR
-	        int numResults = HitTest(m_NativeARSession, point, types);
-	        List<ARHitTestResult> results = new List<ARHitTestResult>();
-		
-	        for (int i = 0; i < numResults; ++i)
-	        {
-	            var result = GetLastHitTestResult(i);
-                results.Add(GetHitTestResultFromResultData(result));
-	        }
+		public List<ARHitTestResult> HitTest(ARPoint point, ARHitTestResultType types)
+		{
+			List<ARHitTestResult> results = new List<ARHitTestResult>();
+			return HitTest(point, types, results);
+		}
 
-	        return results;
+		public List<ARHitTestResult> HitTest(ARPoint point, ARHitTestResultType types, List<ARHitTestResult> results)
+		{
+			results.Clear();
+#if !UNITY_EDITOR
+				int numResults = HitTest(m_NativeARSession, point, types);
+	
+				for (int i = 0; i < numResults; ++i)
+				{
+						var result = GetLastHitTestResult(i);
+						results.Add(GetHitTestResultFromResultData(result));
+				}
+
+				return results;
 #else
-            return new List<ARHitTestResult>();
+			return results;
 #endif
-	    }
+		}
 		
 		public ARTextureHandles GetARVideoTextureHandles()
 		{
