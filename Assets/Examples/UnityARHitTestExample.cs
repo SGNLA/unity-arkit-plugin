@@ -24,12 +24,11 @@ namespace UnityEngine.XR.iOS
 		
 		// Update is called once per frame
 		void Update () {
-			if (Input.touchCount > 0 && m_HitTransform != null)
+			if (Input.GetMouseButtonDown(0) && m_HitTransform != null)
 			{
-				var touch = Input.GetTouch(0);
-				if (touch.phase == TouchPhase.Began)
+				Vector3 touchPosition = Input.mousePosition;
 				{
-					var screenPosition = Camera.main.ScreenToViewportPoint(touch.position);
+					var screenPosition = Camera.main.ScreenToViewportPoint(touchPosition);
 					ARPoint point = new ARPoint {
 						x = screenPosition.x,
 						y = screenPosition.y
