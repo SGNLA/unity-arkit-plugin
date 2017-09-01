@@ -22,5 +22,9 @@ namespace UnityEngine.XR.iOS
 			float newai = camera.ambientIntensity;
 			l.intensity = newai / 1000.0f;
 		}
+
+		void OnDestroy() {
+			UnityARSessionNativeInterface.ARFrameUpdatedEvent -= UpdateAmbientIntensity;
+		}
     }
 }
