@@ -285,14 +285,14 @@ namespace Utils
 			enableLightEstimation = enableLightEst;
 		}
 
-		public static implicit operator serializableARSessionConfiguration(ARKitWorldTackingSessionConfiguration awtsc)
+		public static implicit operator serializableARSessionConfiguration(ARKitWorldTrackingSessionConfiguration awtsc)
 		{
 			return new serializableARSessionConfiguration (awtsc.alignment, awtsc.planeDetection, awtsc.getPointCloudData, awtsc.enableLightEstimation);
 		}
 
-		public static implicit operator ARKitWorldTackingSessionConfiguration (serializableARSessionConfiguration sasc)
+		public static implicit operator ARKitWorldTrackingSessionConfiguration (serializableARSessionConfiguration sasc)
 		{
-			return new ARKitWorldTackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation);
+			return new ARKitWorldTrackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation);
 		}
 	};
 

@@ -209,7 +209,7 @@ namespace UnityEngine.XR.iOS {
 
 
 
-	public struct ARKitWorldTackingSessionConfiguration
+	public struct ARKitWorldTrackingSessionConfiguration
 	{
 	    public UnityARAlignment alignment; 
 	    public UnityARPlaneDetection planeDetection;
@@ -217,7 +217,7 @@ namespace UnityEngine.XR.iOS {
         public bool enableLightEstimation;
         public bool IsSupported { get { return IsARKitWorldTrackingSessionConfigurationSupported(); } private set {} }
 
-	    public ARKitWorldTackingSessionConfiguration(UnityARAlignment alignment = UnityARAlignment.UnityARAlignmentGravity,
+	    public ARKitWorldTrackingSessionConfiguration(UnityARAlignment alignment = UnityARAlignment.UnityARAlignmentGravity,
 	            UnityARPlaneDetection planeDetection = UnityARPlaneDetection.Horizontal,
             bool getPointCloudData = false, 
             bool enableLightEstimation = false)
@@ -312,10 +312,10 @@ namespace UnityEngine.XR.iOS {
                                             internal_ARUserAnchorUpdated userAnchorUpdatedCallback, 
                                             internal_ARUserAnchorRemoved userAnchorRemovedCallback);
 	    [DllImport("__Internal")]
-	    private static extern void StartWorldTrackingSession(IntPtr nativeSession, ARKitWorldTackingSessionConfiguration configuration);
+	    private static extern void StartWorldTrackingSession(IntPtr nativeSession, ARKitWorldTrackingSessionConfiguration configuration);
 
         [DllImport("__Internal")]
-        private static extern void StartWorldTrackingSessionWithOptions(IntPtr nativeSession, ARKitWorldTackingSessionConfiguration configuration, UnityARSessionRunOption runOptions);
+        private static extern void StartWorldTrackingSessionWithOptions(IntPtr nativeSession, ARKitWorldTrackingSessionConfiguration configuration, UnityARSessionRunOption runOptions);
 
         [DllImport("__Internal")]
         private static extern void StartSession(IntPtr nativeSession, ARKitSessionConfiguration configuration);
@@ -655,14 +655,14 @@ namespace UnityEngine.XR.iOS {
             }
 		}
 
-        public void RunWithConfigAndOptions(ARKitWorldTackingSessionConfiguration config, UnityARSessionRunOption runOptions)
+        public void RunWithConfigAndOptions(ARKitWorldTrackingSessionConfiguration config, UnityARSessionRunOption runOptions)
         {
 #if !UNITY_EDITOR
             StartWorldTrackingSessionWithOptions (m_NativeARSession, config, runOptions);
 #endif
         }
 
-	    public void RunWithConfig(ARKitWorldTackingSessionConfiguration config)
+	    public void RunWithConfig(ARKitWorldTrackingSessionConfiguration config)
 	    {
 #if !UNITY_EDITOR
 	        StartWorldTrackingSession(m_NativeARSession, config);
@@ -671,7 +671,7 @@ namespace UnityEngine.XR.iOS {
 
 	    public void Run()
 	    {
-	        RunWithConfig(new ARKitWorldTackingSessionConfiguration(UnityARAlignment.UnityARAlignmentGravity, UnityARPlaneDetection.Horizontal));
+	        RunWithConfig(new ARKitWorldTrackingSessionConfiguration(UnityARAlignment.UnityARAlignmentGravity, UnityARPlaneDetection.Horizontal));
 	    }
 
         public void RunWithConfigAndOptions(ARKitSessionConfiguration config, UnityARSessionRunOption runOptions)
