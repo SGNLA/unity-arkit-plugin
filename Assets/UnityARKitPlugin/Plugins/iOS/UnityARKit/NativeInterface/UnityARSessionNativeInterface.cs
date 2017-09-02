@@ -33,6 +33,12 @@ namespace UnityEngine.XR.iOS {
 		public IntPtr cvPixelBufferPtr;
 	};
 
+	[Serializable]
+	public struct UnityARLightEstimate
+	{
+		public float ambientIntensity;
+		public float ambientColorTemperature;
+	};
 
     struct internal_UnityARCamera
     {
@@ -41,7 +47,7 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
-		public float ambientIntensity;
+		public UnityARLightEstimate lightEstimation;
         public uint getPointCloudData;
     };
 
@@ -52,17 +58,17 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
-		public float ambientIntensity;
+		public UnityARLightEstimate lightEstimation;
         public Vector3[] pointCloudData;
 
-		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, float lightEst, Vector3[] pointCloud)
+		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightEstimate lightEst, Vector3[] pointCloud)
 		{
 			worldTransform = wt;
 			projectionMatrix = pm;
 			trackingState = ats;
 			trackingReason = atsr;
 			videoParams = uvp;
-			ambientIntensity = lightEst;
+			lightEstimation = lightEst;
 			pointCloudData = pointCloud;
 		}
     };
@@ -458,7 +464,7 @@ namespace UnityEngine.XR.iOS {
             pubCamera.trackingState = camera.trackingState;
             pubCamera.trackingReason = camera.trackingReason;
 			pubCamera.videoParams = camera.videoParams;
-			pubCamera.ambientIntensity = camera.ambientIntensity;
+			pubCamera.lightEstimation = camera.lightEstimation;
             s_Camera = pubCamera;
 
             if (camera.getPointCloudData == 1)
