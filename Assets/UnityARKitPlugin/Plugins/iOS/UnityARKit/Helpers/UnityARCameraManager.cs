@@ -22,7 +22,7 @@ public class UnityARCameraManager : MonoBehaviour {
 
 #if !UNITY_EDITOR
 		Application.targetFrameRate = 60;
-        ARKitWorldTackingSessionConfiguration config = new ARKitWorldTackingSessionConfiguration();
+        ARKitWorldTrackingSessionConfiguration config = new ARKitWorldTrackingSessionConfiguration();
 		config.planeDetection = planeDetection;
 		config.alignment = startAlignment;
 		config.getPointCloudData = getPointCloud;
