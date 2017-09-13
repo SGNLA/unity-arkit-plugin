@@ -40,6 +40,7 @@ Shader "Unlit/ARCameraShader"
 
 			TexCoordInOut vert (Vertex vertex)
 			{
+				TexCoordInOut o;
 				o.position = UnityObjectToClipPos(vertex.position); 
 				if (_isPortrait == 1)
 				{
