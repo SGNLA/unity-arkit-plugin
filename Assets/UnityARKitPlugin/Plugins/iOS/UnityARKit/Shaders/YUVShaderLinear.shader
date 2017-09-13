@@ -1,4 +1,4 @@
-Shader "Unlit/ARCameraShader"
+Shader "Unlit/ARCameraShader(Linear)"
 {
 	Properties
 	{
@@ -40,14 +40,15 @@ Shader "Unlit/ARCameraShader"
 
 			TexCoordInOut vert (Vertex vertex)
 			{
+				TexCoordInOut o;
 				o.position = UnityObjectToClipPos(vertex.position); 
 				if (_isPortrait == 1)
 				{
-					o.texcoord = float2((vertex.texcoord.x - 0.5f) / _texCoordScale + 0.5f, 1 - vertex.texcoord.y);
+					o.texcoord = float2(vertex.texcoord.x, -(vertex.texcoord.y - 0.5f) * _texCoordScale + 0.5f);
 				}
 				else
 				{
-					o.texcoord = float2(vertex.texcoord.x, -(vertex.texcoord.y - 0.5f) / _texCoordScale + 0.5f);
+					o.texcoord = float2((vertex.texcoord.x - 0.5f) * _texCoordScale + 0.5f, -vertex.texcoord.y);
 				}
 				o.texcoord = mul(_TextureRotation, float4(o.texcoord,0,1)).xy;
 	            
@@ -72,7 +73,8 @@ Shader "Unlit/ARCameraShader"
 						float4(0.0, +0.0000, +0.0000, +1.0000)
 					);
 
-                return mul(ycbcrToRGBTransform, ycbcr);
+				//gamma->linear conversion
+                return pow(mul(ycbcrToRGBTransform, ycbcr), 2.2);
 			}
 			ENDCG
 		}
