@@ -641,6 +641,12 @@ static CGAffineTransform s_CurAffineTransform;
 
 extern "C" void* unity_CreateNativeARSession()
 {
+    // check if ARKit works
+    if ([ARSession class] == nil)
+    {
+        [NSException raise:@"ARKitNotSupportedException" format:@"ARKit is not supported in the runtime you are using.  Make sure you are using a compatible device and or OS version"];
+    }
+    
     UnityARSession *nativeSession = [[UnityARSession alloc] init];
     nativeSession->_session = [ARSession new];
     nativeSession->_session.delegate = nativeSession;
