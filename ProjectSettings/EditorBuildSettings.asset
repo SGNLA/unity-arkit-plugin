@@ -24,5 +24,7 @@ EditorBuildSettings:
     path: Assets/UnityARKitPlugin/ARKitRemote/UnityARKitRemote.unity
     guid: 3ed73c0c9d4b76a418a0541c0cefd3ac
   - enabled: 0
+    path: Assets/UnityARKitPlugin/Examples/ScaledContentExample/UnityARContentScalingScene.unity
+    guid: 257dde381162043d5b94e19acc220d77
     path: Assets/UnityARKitPlugin/Examples/FocusSquare/FocusSquareScene.unity
     guid: 3c9ef824a7b95400bade362484e9b6af
