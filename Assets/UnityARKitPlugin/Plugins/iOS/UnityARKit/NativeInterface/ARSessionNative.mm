@@ -49,8 +49,16 @@ typedef struct
 
 } ARKitWorldTrackingSessionConfiguration;
 
+typedef struct
+{
+    UnityARAlignment alignment;
+    uint32_t enableLightEstimation;
+    
+} ARKitFaceTrackingConfiguration;
+
 enum UnityARSessionRunOptions
 {
+    UnityARSessionRunOptionsNone = 0,
     UnityARSessionRunOptionResetTracking           = (1 << 0),
     UnityARSessionRunOptionRemoveExistingAnchors   = (1 << 1)
 
@@ -70,6 +78,25 @@ typedef struct
     void* identifier;
     UnityARMatrix4x4 transform;
 } UnityARUserAnchorData;
+
+typedef struct
+{
+    NSUInteger vertexCount;
+    float *vertices;
+    NSUInteger textureCoordinateCount;
+    float *textureCoordinates;
+    NSUInteger triangleCount;
+    int *triangleIndices;
+} UnityARFaceGeometry;
+
+typedef struct
+{
+    void *identifier;
+    UnityARMatrix4x4 transform;
+    UnityARFaceGeometry faceGeometry;
+    void *blendShapes;  //NSDictionary<ARBlendShapeLocation, NSNumber*> *
+} UnityARFaceAnchorData;
+
 
 enum UnityARTrackingState
 {
@@ -130,6 +157,7 @@ typedef struct
 typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
 typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
+typedef void (*UNITY_AR_FACE_ANCHOR_CALLBACK)(UnityARFaceAnchorData anchorData);
 typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
 typedef void (*UNITY_AR_SESSION_VOID_CALLBACK)(void);
 typedef void (*UNITY_AR_SESSION_TRACKING_CHANGED)(UnityARCamera camera);
@@ -227,6 +255,12 @@ inline void GetARSessionConfigurationFromARKitSessionConfiguration(ARKitSessionC
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
 }
 
+inline void GetARFaceConfigurationFromARKitFaceConfiguration(ARKitFaceTrackingConfiguration& unityConfig, ARFaceTrackingConfiguration* appleConfig)
+{
+    appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
+    appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
+}
+
 inline void ARKitMatrixToUnityARMatrix4x4(const matrix_float4x4& matrixIn, UnityARMatrix4x4* matrixOut)
 {
     vector_float4 c0 = matrixIn.columns[0];
@@ -287,6 +321,23 @@ inline void UnityARUserAnchorDataFromARAnchorPtr(UnityARUserAnchorData& anchorDa
     ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
 }
 
+inline void UnityARFaceGeometryFromARFaceGeometry(UnityARFaceGeometry& faceGeometry, ARFaceGeometry *arFaceGeometry)
+{
+    faceGeometry.vertexCount = arFaceGeometry.vertexCount;
+    faceGeometry.triangleCount = arFaceGeometry.triangleCount;
+    faceGeometry.textureCoordinateCount = arFaceGeometry.textureCoordinateCount;
+    faceGeometry.vertices = (float *) arFaceGeometry.vertices;
+    faceGeometry.triangleIndices = (int *) arFaceGeometry.triangleIndices;
+    faceGeometry.textureCoordinates = (float *) arFaceGeometry.textureCoordinates;
+}
+
+inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anchorData, ARFaceAnchor* nativeAnchor)
+{
+    anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
+    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
+    UnityARFaceGeometryFromARFaceGeometry(anchorData.faceGeometry, nativeAnchor.geometry);
+    anchorData.blendShapes = (__bridge void *) nativeAnchor.blendShapes;
+}
 
 @protocol UnityARAnchorEventDispatcher
 @required
@@ -362,6 +413,41 @@ inline void UnityARUserAnchorDataFromARAnchorPtr(UnityARUserAnchorData& anchorDa
     }
 
 @end
+
+@interface UnityARFaceAnchorCallbackWrapper : NSObject <UnityARAnchorEventDispatcher>
+{
+@public
+    UNITY_AR_FACE_ANCHOR_CALLBACK _anchorAddedCallback;
+    UNITY_AR_FACE_ANCHOR_CALLBACK _anchorUpdatedCallback;
+    UNITY_AR_FACE_ANCHOR_CALLBACK _anchorRemovedCallback;
+}
+@end
+
+@implementation UnityARFaceAnchorCallbackWrapper
+
+-(void)sendAnchorAddedEvent:(ARAnchor*)anchor
+{
+    UnityARFaceAnchorData data;
+    UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
+    _anchorAddedCallback(data);
+}
+
+-(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
+{
+    UnityARFaceAnchorData data;
+    UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
+    _anchorRemovedCallback(data);
+}
+
+-(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
+{
+    UnityARFaceAnchorData data;
+    UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
+    _anchorUpdatedCallback(data);
+}
+
+@end
+
 static UnityPixelBuffer s_UnityPixelBuffers;
 
 @interface UnityARSession : NSObject <ARSessionDelegate>
@@ -688,6 +774,18 @@ extern "C" void session_SetUserAnchorCallbacks(const void* session, UNITY_AR_USE
     [nativeSession->_classToCallbackMap setObject:userAnchorCallbacks forKey:[ARAnchor class]];
 }
 
+extern "C" void session_SetFaceAnchorCallbacks(const void* session, UNITY_AR_FACE_ANCHOR_CALLBACK faceAnchorAddedCallback,
+                                               UNITY_AR_FACE_ANCHOR_CALLBACK faceAnchorUpdatedCallback,
+                                               UNITY_AR_FACE_ANCHOR_CALLBACK faceAnchorRemovedCallback)
+{
+    UnityARSession* nativeSession = (__bridge UnityARSession*)session;
+    UnityARFaceAnchorCallbackWrapper* faceAnchorCallbacks = [[UnityARFaceAnchorCallbackWrapper alloc] init];
+    faceAnchorCallbacks->_anchorAddedCallback = faceAnchorAddedCallback;
+    faceAnchorCallbacks->_anchorUpdatedCallback = faceAnchorUpdatedCallback;
+    faceAnchorCallbacks->_anchorRemovedCallback = faceAnchorRemovedCallback;
+    [nativeSession->_classToCallbackMap setObject:faceAnchorCallbacks forKey:[ARAnchor class]];
+}
+
 extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitWorldTrackingSessionConfiguration unityConfig, UnityARSessionRunOptions runOptions)
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
@@ -732,6 +830,21 @@ extern "C" void StartSession(void* nativeSession, ARKitSessionConfiguration unit
     session->_getPointCloudData = (BOOL) unityConfig.getPointCloudData;
     [session->_session runWithConfiguration:config];
     [session setupMetal];
+}
+
+extern "C" void StartFaceTrackingSessionWithOptions(void* nativeSession, ARKitFaceTrackingConfiguration unityConfig, UnityARSessionRunOptions runOptions)
+{
+    UnityARSession* session = (__bridge UnityARSession*)nativeSession;
+    ARFaceTrackingConfiguration* config = [ARFaceTrackingConfiguration new];
+    ARSessionRunOptions runOpts = GetARSessionRunOptionsFromUnityARSessionRunOptions(runOptions);
+    GetARFaceConfigurationFromARKitFaceConfiguration(unityConfig, config);
+    [session->_session runWithConfiguration:config options:runOpts ];
+    [session setupMetal];
+}
+
+extern "C" void StartFaceTrackingSession(void* nativeSession, ARKitFaceTrackingConfiguration unityConfig)
+{
+    StartFaceTrackingSessionWithOptions(nativeSession, unityConfig, UnityARSessionRunOptionsNone);
 }
 
 extern "C" void PauseSession(void* nativeSession)
