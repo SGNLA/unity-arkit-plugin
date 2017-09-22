@@ -783,7 +783,7 @@ extern "C" void session_SetFaceAnchorCallbacks(const void* session, UNITY_AR_FAC
     faceAnchorCallbacks->_anchorAddedCallback = faceAnchorAddedCallback;
     faceAnchorCallbacks->_anchorUpdatedCallback = faceAnchorUpdatedCallback;
     faceAnchorCallbacks->_anchorRemovedCallback = faceAnchorRemovedCallback;
-    [nativeSession->_classToCallbackMap setObject:faceAnchorCallbacks forKey:[ARAnchor class]];
+    [nativeSession->_classToCallbackMap setObject:faceAnchorCallbacks forKey:[ARFaceAnchor class]];
 }
 
 extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitWorldTrackingSessionConfiguration unityConfig, UnityARSessionRunOptions runOptions)
