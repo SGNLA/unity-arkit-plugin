@@ -1008,3 +1008,8 @@ extern "C" bool IsARKitSessionConfigurationSupported()
 {
     return AROrientationTrackingConfiguration.isSupported;
 }
+
+extern "C" bool IsARKitFaceTrackingConfigurationSupported()
+{
+    return ARFaceTrackingConfiguration.isSupported;
+}
