@@ -131,10 +131,19 @@ namespace UnityEngine.XR.iOS
 
 		int [] MarshalIndices(IntPtr ptrIndices, int triCount)
 		{
-			int numInts = triCount * 3;
-			int [] workIndices = new int[numInts];
-			Marshal.Copy (ptrIndices, workIndices, 0, numInts);
-			return workIndices;
+			int numIndices = triCount * 3;
+			short [] workIndices = new short[numIndices];  //since ARKit returns Int16
+			Marshal.Copy (ptrIndices, workIndices, 0, numIndices);
+
+			int[] triIndices = new int[numIndices];
+			for (int count = 0; count < numIndices; count+=3) {
+				//reverse winding order
+				triIndices [count] = workIndices [count];
+				triIndices [count + 1] = workIndices [count + 2];
+				triIndices [count + 2] = workIndices [count + 1];
+			}
+
+			return triIndices;
 		}
 
 		Vector2 [] MarshalTexCoords(IntPtr ptrTexCoords, int texCoordCount)
@@ -148,7 +157,7 @@ namespace UnityEngine.XR.iOS
 			for (int count = 0; count < numFloats; count++)
 			{
 				texCoords [count / 2].x = workTexCoords[count++];
-				texCoords [count / 2].y = workTexCoords[count++];
+				texCoords [count / 2].y = workTexCoords[count];
 			}
 
 			return texCoords;
