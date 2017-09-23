@@ -35,6 +35,9 @@ public class UnityARFaceMeshManager : MonoBehaviour {
 
 	void FaceAdded (ARFaceAnchor anchorData)
 	{
+		gameObject.transform.localPosition = UnityARMatrixOps.GetPosition (anchorData.transform);
+		gameObject.transform.localRotation = UnityARMatrixOps.GetRotation (anchorData.transform);
+
 		
 		faceMesh = new Mesh ();
 		faceMesh.vertices = anchorData.faceGeometry.vertices;
@@ -50,6 +53,8 @@ public class UnityARFaceMeshManager : MonoBehaviour {
 	void FaceUpdated (ARFaceAnchor anchorData)
 	{
 		if (faceMesh != null) {
+			gameObject.transform.localPosition = UnityARMatrixOps.GetPosition (anchorData.transform);
+			gameObject.transform.localRotation = UnityARMatrixOps.GetRotation (anchorData.transform);
 			faceMesh.vertices = anchorData.faceGeometry.vertices;
 			faceMesh.uv = anchorData.faceGeometry.textureCoordinates;
 			faceMesh.triangles = anchorData.faceGeometry.triangleIndices;
