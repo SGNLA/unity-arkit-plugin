@@ -169,10 +169,12 @@ namespace UnityEngine.XR.iOS
 	public class ARFaceAnchor 
 	{
 		private UnityARFaceAnchorData faceAnchorData;
+		private Dictionary<ARBlendShapeLocation, float> managedDictionary;
 
 		public ARFaceAnchor (UnityARFaceAnchorData ufad)
 		{
 			faceAnchorData = ufad;
+			managedDictionary = new Dictionary<ARBlendShapeLocation, float> ();
 		}
 		
 
@@ -191,7 +193,24 @@ namespace UnityEngine.XR.iOS
 
 		public ARFaceGeometry faceGeometry { get { return new ARFaceGeometry (faceAnchorData.faceGeometry);	} }
 
-		public Dictionary<ARBlendShapeLocation, float> blendShapes { get { return new Dictionary<ARBlendShapeLocation, float> (); } }
+		public Dictionary<ARBlendShapeLocation, float> blendShapes { get { return GetBlendShapesFromNative(faceAnchorData.blendShapes); } }
 
+		public delegate void DictionaryVisitorHandler(string key, float value);
+
+		[DllImport("__Internal")]
+		private static extern void GetBlendShapesInfo(IntPtr ptrDic, DictionaryVisitorHandler handler);
+
+		Dictionary<ARBlendShapeLocation, float> GetBlendShapesFromNative(IntPtr blendShapesPtr)
+		{
+			managedDictionary.Clear ();
+			GetBlendShapesInfo (blendShapesPtr, AddElementToManagedDictionary);
+			return managedDictionary;
+		}
+
+		void AddElementToManagedDictionary(string key, float value)
+		{
+			ARBlendShapeLocation arb = (ARBlendShapeLocation) Enum.Parse (typeof(ARBlendShapeLocation), key);
+			managedDictionary.Add (arb, value);
+		}
 	}
 }

@@ -1013,3 +1013,15 @@ extern "C" bool IsARKitFaceTrackingConfigurationSupported()
 {
     return ARFaceTrackingConfiguration.isSupported;
 }
+
+extern "C" void GetBlendShapesInfo(void* ptrDictionary, void (*visitorFn)(const char* key, const float value))
+{
+    // Get your NSDictionary
+    NSDictionary<ARBlendShapeLocation, NSNumber*> * dictionary = (__bridge NSDictionary<ARBlendShapeLocation, NSNumber*> *) ptrDictionary;
+    
+    for(NSString* key in dictionary)
+    {
+        NSNumber* value = [dictionary objectForKey:key];
+        visitorFn([key UTF8String], [value floatValue]);
+    }
+}
