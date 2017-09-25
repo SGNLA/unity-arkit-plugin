@@ -32,3 +32,6 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/UnityARKitPlugin/Examples/FaceTracking/FaceMeshScene.unity
     guid: e95b28d2a95b34b868e407dc86a3e6d2
+  - enabled: 0
+    path: Assets/UnityARKitPlugin/Examples/FaceTracking/FaceBlendshapeScene.unity
+    guid: 74c2619dd419d4704bba49146f77161d
