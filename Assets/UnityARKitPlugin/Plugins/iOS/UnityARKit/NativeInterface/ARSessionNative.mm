@@ -286,7 +286,7 @@ inline void UnityARMatrix4x4FromCGAffineTransform(UnityARMatrix4x4& outMatrix, C
 {
     outMatrix.column0.x = displayTransform.a;
     outMatrix.column0.y = isLandscape ? displayTransform.c : -displayTransform.c;
-    outMatrix.column0.z = displayTransform.tx;
+    outMatrix.column0.z = isLandscape ? displayTransform.tx : -displayTransform.tx;
     outMatrix.column1.x = displayTransform.b;
     outMatrix.column1.y = isLandscape ? -displayTransform.d : displayTransform.d;
     outMatrix.column1.z = isLandscape ? 1.0f - displayTransform.ty : displayTransform.ty;
