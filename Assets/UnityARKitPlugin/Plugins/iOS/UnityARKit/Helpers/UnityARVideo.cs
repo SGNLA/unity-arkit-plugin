@@ -13,6 +13,7 @@ namespace UnityEngine.XR.iOS
         private CommandBuffer m_VideoCommandBuffer;
         private Texture2D _videoTextureY;
         private Texture2D _videoTextureCbCr;
+		private Matrix4x4 _displayTransform;
 
 		private bool bCommandBufferInitialized;
 
@@ -32,7 +33,7 @@ namespace UnityEngine.XR.iOS
 		{
 			fTexCoordScale = cam.videoParams.texCoordScale;
 			screenOrientation = (ScreenOrientation) cam.videoParams.screenOrientation;
-
+			_displayTransform = new Matrix4x4(cam.displayTransform.column0, cam.displayTransform.column1, cam.displayTransform.column2, cam.displayTransform.column3);
 		}
 
 		void InitializeCommandBuffer()
@@ -101,8 +102,10 @@ namespace UnityEngine.XR.iOS
             else if (screenOrientation == ScreenOrientation.LandscapeRight) {
                 rotation = -180;
             }
+			
             Matrix4x4 m = Matrix4x4.TRS (Vector3.zero, Quaternion.Euler(0.0f, 0.0f, rotation), Vector3.one);
             m_ClearMaterial.SetMatrix("_TextureRotation", m);
+			m_ClearMaterial.SetMatrix("_DisplayTransform", _displayTransform);
 			m_ClearMaterial.SetFloat("_texCoordScale", fTexCoordScale);
             m_ClearMaterial.SetInt("_isPortrait", isPortrait);
         }

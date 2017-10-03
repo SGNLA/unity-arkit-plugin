@@ -48,6 +48,7 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
 		public UnityARLightEstimate lightEstimation;
+        public UnityARMatrix4x4 displayTransform;
         public uint getPointCloudData;
     };
 
@@ -59,9 +60,10 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
 		public UnityARLightEstimate lightEstimation;
+        public UnityARMatrix4x4 displayTransform;
         public Vector3[] pointCloudData;
 
-		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightEstimate lightEst, Vector3[] pointCloud)
+		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightEstimate lightEst, UnityARMatrix4x4 dt, Vector3[] pointCloud)
 		{
 			worldTransform = wt;
 			projectionMatrix = pm;
@@ -69,6 +71,7 @@ namespace UnityEngine.XR.iOS {
 			trackingReason = atsr;
 			videoParams = uvp;
 			lightEstimation = lightEst;
+            displayTransform = dt;
 			pointCloudData = pointCloud;
 		}
     };
@@ -465,6 +468,7 @@ namespace UnityEngine.XR.iOS {
             pubCamera.trackingReason = camera.trackingReason;
 			pubCamera.videoParams = camera.videoParams;
 			pubCamera.lightEstimation = camera.lightEstimation;
+            pubCamera.displayTransform = camera.displayTransform;
             s_Camera = pubCamera;
 
             if (camera.getPointCloudData == 1)
