@@ -345,9 +345,6 @@ namespace UnityEngine.XR.iOS {
 		private static extern int GetTrackingQuality();
 
         [DllImport("__Internal")]
-        private static extern float GetYUVTexCoordScale();
-
-        [DllImport("__Internal")]
         private static extern bool GetARPointCloud (ref IntPtr verts, ref uint vertLength);
 
 		[DllImport("__Internal")]
@@ -734,12 +731,6 @@ namespace UnityEngine.XR.iOS {
 			return GetTrackingQuality();
 		}
         
-		[Obsolete("Hook ARFrameUpdatedEvent instead and get UnityARCamera.videoParams.texCoordScale")]
-        public float GetARYUVTexCoordScale()
-        {
-            return GetYUVTexCoordScale();
-        }
-
         public UnityARUserAnchorData AddUserAnchor(UnityARUserAnchorData anchorData)
         {
 #if !UNITY_EDITOR
