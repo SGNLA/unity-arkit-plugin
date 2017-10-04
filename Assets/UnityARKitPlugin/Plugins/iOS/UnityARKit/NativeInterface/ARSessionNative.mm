@@ -284,14 +284,28 @@ inline void UnityARAnchorDataFromARAnchorPtr(UnityARAnchorData& anchorData, ARPl
 
 inline void UnityARMatrix4x4FromCGAffineTransform(UnityARMatrix4x4& outMatrix, CGAffineTransform displayTransform, BOOL isLandscape)
 {
-    outMatrix.column0.x = displayTransform.a;
-    outMatrix.column0.y = isLandscape ? displayTransform.c : -displayTransform.c;
-    outMatrix.column0.z = isLandscape ? displayTransform.tx : -displayTransform.tx;
-    outMatrix.column1.x = displayTransform.b;
-    outMatrix.column1.y = isLandscape ? -displayTransform.d : displayTransform.d;
-    outMatrix.column1.z = isLandscape ? 1.0f - displayTransform.ty : displayTransform.ty;
-    outMatrix.column2.z = 1.0f;
-    outMatrix.column3.w = 1.0f;
+    if (isLandscape)
+    {
+        outMatrix.column0.x = displayTransform.a;
+        outMatrix.column0.y = displayTransform.c;
+        outMatrix.column0.z = displayTransform.tx;
+        outMatrix.column1.x = displayTransform.b;
+        outMatrix.column1.y = -displayTransform.d;
+        outMatrix.column1.z = 1.0f - displayTransform.ty;
+        outMatrix.column2.z = 1.0f;
+        outMatrix.column3.w = 1.0f; 
+    }
+    else
+    {
+        outMatrix.column0.x = displayTransform.a;
+        outMatrix.column0.y = -displayTransform.c;
+        outMatrix.column0.z = -displayTransform.tx;
+        outMatrix.column1.x = displayTransform.b;
+        outMatrix.column1.y = displayTransform.d;
+        outMatrix.column1.z = displayTransform.ty;
+        outMatrix.column2.z = 1.0f;
+        outMatrix.column3.w = 1.0f;
+    }
 }
 
 inline void UnityARUserAnchorDataFromARAnchorPtr(UnityARUserAnchorData& anchorData, ARAnchor* nativeAnchor)
@@ -894,11 +908,6 @@ extern "C" float GetAmbientIntensity()
 extern "C" int GetTrackingQuality()
 {
     return s_TrackingQuality;
-}
-
-extern "C" float GetYUVTexCoordScale()
-{
-    return s_ShaderScale;
 }
 
 extern "C" bool IsARKitWorldTrackingSessionConfigurationSupported()

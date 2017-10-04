@@ -46,7 +46,7 @@ Shader "Unlit/ARCameraShader"
 
 				float texX = vertex.texcoord.x;
 				float texY = vertex.texcoord.y;
-
+				
 				o.texcoord.x = (_DisplayTransform[0].x * texX + _DisplayTransform[1].x * (texY) + _DisplayTransform[2].x);
  			 	o.texcoord.y = (_DisplayTransform[0].y * texX + _DisplayTransform[1].y * (texY) + (_DisplayTransform[2].y));
 	            
