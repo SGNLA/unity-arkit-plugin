@@ -4,8 +4,6 @@ Shader "Unlit/ARCameraShader"
 	{
     	_textureY ("TextureY", 2D) = "white" {}
         _textureCbCr ("TextureCbCr", 2D) = "black" {}
-        _texCoordScale ("Texture Coordinate Scale", float) = 1.0
-        _isPortrait ("Device Orientation", Int) = 0
 	}
 	SubShader
 	{
@@ -22,9 +20,6 @@ Shader "Unlit/ARCameraShader"
 			
 			#include "UnityCG.cginc"
 
-            uniform float _texCoordScale;
-            uniform int _isPortrait;
-            float4x4 _TextureRotation;
 			float4x4 _DisplayTransform;
 
 			struct Vertex
