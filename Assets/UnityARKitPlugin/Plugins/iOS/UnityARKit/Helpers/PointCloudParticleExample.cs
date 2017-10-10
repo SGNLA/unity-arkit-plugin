@@ -16,6 +16,7 @@ public class PointCloudParticleExample : MonoBehaviour {
 	void Start () {
         UnityARSessionNativeInterface.ARFrameUpdatedEvent += ARFrameUpdated;
         currentPS = Instantiate (pointCloudParticlePrefab);
+        currentPS.gameObject.layer = gameObject.layer;
         frameUpdated = false;
 	}
 	

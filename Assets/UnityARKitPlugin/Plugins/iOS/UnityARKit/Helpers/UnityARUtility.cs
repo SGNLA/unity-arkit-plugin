@@ -8,10 +8,12 @@ namespace UnityEngine.XR.iOS
 		private MeshCollider meshCollider; //declared to avoid code stripping of class
 		private MeshFilter meshFilter; //declared to avoid code stripping of class
 		private static GameObject planePrefab = null;
+		private static int m_Layer;
 
-		public static void InitializePlanePrefab(GameObject go)
+		public static void InitializePlanePrefab(GameObject go, int layer)
 		{
 			planePrefab = go;
+			m_Layer = layer;
 		}
 		
 		public static GameObject CreatePlaneInScene(ARPlaneAnchor arPlaneAnchor)
@@ -19,6 +21,7 @@ namespace UnityEngine.XR.iOS
 			GameObject plane;
 			if (planePrefab != null) {
 				plane = GameObject.Instantiate(planePrefab);
+				plane.layer = m_Layer;
 			} else {
 				plane = new GameObject (); //put in a blank gameObject to get at least a transform to manipulate
 			}

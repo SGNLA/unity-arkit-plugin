@@ -16,6 +16,7 @@ namespace UnityEngine.XR.iOS
 		private Matrix4x4 _displayTransform;
 
 		private bool bCommandBufferInitialized;
+		private Camera m_Camera;
 
 		public void Start()
 		{
@@ -36,6 +37,7 @@ namespace UnityEngine.XR.iOS
 		{
 			m_VideoCommandBuffer = new CommandBuffer(); 
 			m_VideoCommandBuffer.Blit(null, BuiltinRenderTextureType.CurrentActive, m_ClearMaterial);
+			m_Camera = GetComponent<Camera>();
 			GetComponent<Camera>().AddCommandBuffer(CameraEvent.BeforeForwardOpaque, m_VideoCommandBuffer);
 			bCommandBufferInitialized = true;
 
