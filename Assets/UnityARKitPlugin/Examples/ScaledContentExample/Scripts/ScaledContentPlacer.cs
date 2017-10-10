@@ -10,26 +10,24 @@ public class ScaledContentPlacer : MonoBehaviour
 
     public Transform m_HitTransform;
 
-	private Vector3 m_ContentScale;
+	private float m_ContentScale;
 
 	void Awake()
 	{
 		ContentScaleManager.ContentScaleChangedEvent += ContentScaleChanged;
 	}
 
-	void ContentScaleChanged(Vector3 scale, Vector3 prevScale)
+	void ContentScaleChanged(float scale, float prevScale)
 	{
 		m_ContentScale = scale;
 		UpdateScaledContent(scale, prevScale);
 	}
 
-	void UpdateScaledContent(Vector3 newScale, Vector3 prevScale)
+	void UpdateScaledContent(float newScale, float prevScale)
 	{
         Vector3 pos = m_HitTransform.position;
-        // undo the previous scale
-        pos.Scale(new Vector3(1.0f / prevScale.x, 1.0f / prevScale.y, 1.0f / prevScale.z));
-        // apply the new scale
-        pos.Scale(newScale);
+		// undo the previous scale and         // apply the new scale
+		pos.Scale(new Vector3(newScale / prevScale, newScale / prevScale, newScale / prevScale));
         m_HitTransform.position = pos;
 	 }
 
@@ -41,8 +39,7 @@ public class ScaledContentPlacer : MonoBehaviour
             foreach (var hitResult in hitResults)
             {
                 Vector3 pos = UnityARMatrixOps.GetPosition(hitResult.worldTransform);
-				pos.Scale(m_ContentScale);
-				m_HitTransform.position = pos;
+				m_HitTransform.position = pos * m_ContentScale;
                 m_HitTransform.rotation = UnityARMatrixOps.GetRotation(hitResult.worldTransform);
                 return true;
             }

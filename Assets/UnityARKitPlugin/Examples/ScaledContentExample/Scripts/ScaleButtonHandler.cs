@@ -19,6 +19,11 @@ public class ScaleButtonHandler : MonoBehaviour {
 	
 	public void OnClick()
 	{
-		m_ContentScaleManager.ContentScale = m_ContentScaleManager.ContentScale + new Vector3(scaleFactor, scaleFactor, scaleFactor);
+		if (Mathf.Abs(scaleFactor) >= m_ContentScaleManager.ContentScale)
+			scaleFactor *= 0.1f;
+		else if (Mathf.Abs(scaleFactor) * 10.0f < m_ContentScaleManager.ContentScale )
+			scaleFactor *= 10.0f;
+		
+		m_ContentScaleManager.ContentScale = m_ContentScaleManager.ContentScale +  scaleFactor;
 	}
 }
