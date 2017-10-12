@@ -22,11 +22,11 @@ public class BlendshapePrinter : MonoBehaviour {
 
 			string blendshapes = "";
 			foreach(KeyValuePair<ARBlendShapeLocation,float> kvp in currentBlendShapes) {
-				blendshapes += "[";
+				blendshapes += " [";
 				blendshapes += kvp.Key.ToString ();
 				blendshapes += ":";
 				blendshapes += kvp.Value.ToString ();
-				blendshapes += "]";
+				blendshapes += "] ";
 			}
 
 			GUILayout.Box (blendshapes);

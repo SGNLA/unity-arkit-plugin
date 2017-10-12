@@ -33,13 +33,6 @@ namespace UnityEngine.XR.iOS {
 		public IntPtr cvPixelBufferPtr;
 	};
 
-	[Serializable]
-	public struct UnityARLightEstimate
-	{
-		public float ambientIntensity;
-		public float ambientColorTemperature;
-	};
-
     struct internal_UnityARCamera
     {
         public UnityARMatrix4x4 worldTransform;
@@ -47,7 +40,7 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
-		public UnityARLightEstimate lightEstimation;
+		public UnityARLightData lightData;
         public uint getPointCloudData;
     };
 
@@ -58,17 +51,17 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
-		public UnityARLightEstimate lightEstimation;
+		public UnityARLightData lightData;
         public Vector3[] pointCloudData;
 
-		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightEstimate lightEst, Vector3[] pointCloud)
+		public UnityARCamera(UnityARMatrix4x4 wt, UnityARMatrix4x4 pm, ARTrackingState ats, ARTrackingStateReason atsr, UnityVideoParams uvp, UnityARLightData lightDat, Vector3[] pointCloud)
 		{
 			worldTransform = wt;
 			projectionMatrix = pm;
 			trackingState = ats;
 			trackingReason = atsr;
 			videoParams = uvp;
-			lightEstimation = lightEst;
+			lightData = lightDat;
 			pointCloudData = pointCloud;
 		}
     };
@@ -229,6 +222,8 @@ namespace UnityEngine.XR.iOS {
             this.enableLightEstimation = enableLightEstimation;
 
 	    }
+
+
         [DllImport("__Internal")]
         private static extern bool IsARKitWorldTrackingSessionConfigurationSupported();
 	}
@@ -246,8 +241,14 @@ namespace UnityEngine.XR.iOS {
 			this.enableLightEstimation = enableLightEstimation;
 		}
 
+		#if UNITY_EDITOR
+		private bool IsARKitFaceTrackingConfigurationSupported() {
+			return true;
+		}
+		#else
 		[DllImport("__Internal")]
 		private static extern bool IsARKitFaceTrackingConfigurationSupported();
+		#endif
 
 	}
 
@@ -509,7 +510,7 @@ namespace UnityEngine.XR.iOS {
             pubCamera.trackingState = camera.trackingState;
             pubCamera.trackingReason = camera.trackingReason;
 			pubCamera.videoParams = camera.videoParams;
-			pubCamera.lightEstimation = camera.lightEstimation;
+			pubCamera.lightData = camera.lightData;
             s_Camera = pubCamera;
 
             if (camera.getPointCloudData == 1)
