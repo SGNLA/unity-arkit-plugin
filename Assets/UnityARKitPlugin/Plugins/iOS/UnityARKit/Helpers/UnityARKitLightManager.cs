@@ -58,16 +58,17 @@ public class UnityARKitLightManager : MonoBehaviour {
 
 	void UpdateDirectionalLightEstimation(UnityARDirectionalLightEstimate uardle)
 	{
+		SphericalHarmonicsL2 shl = new SphericalHarmonicsL2 ();
+		for (int colorChannel = 0; colorChannel < 3; colorChannel++) {
+			for (int index = 0; index < 9; index++) {
+				shl [colorChannel, index] = uardle.sphericalHarmonicsCoefficients [(colorChannel * 9) + index];
+			}
+		}
+
 		int probeCount = LightmapSettings.lightProbes.count;
 
 		//we have at least one light probe in the scene
 		if (probeCount > 0) {
-			SphericalHarmonicsL2 shl = new SphericalHarmonicsL2 ();
-			for (int colorChannel = 0; colorChannel < 3; colorChannel++) {
-				for (int index = 0; index < 9; index++) {
-					shl [colorChannel, index] = uardle.sphericalHarmonicsCoefficients [(colorChannel * 9) + index];
-				}
-			}
 
 			//Replace all the baked probes in the scene with our generated Spherical Harmonics
 			SphericalHarmonicsL2[] bakedProbes = LightmapSettings.lightProbes.bakedProbes;
@@ -76,5 +77,8 @@ public class UnityARKitLightManager : MonoBehaviour {
 				bakedProbes [i] = shl;
 			}
 		}
+
+		//for objects unaffected by any lightprobes, set up ambient probe
+		RenderSettings.ambientProbe = shl;
 	}
 }
