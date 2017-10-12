@@ -6,3 +6,4 @@ unity-arkit-plugin.userprefs
 obj
 .DS_Store
 *.csproj
+XCodeProject
