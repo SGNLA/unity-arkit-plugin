@@ -130,12 +130,31 @@ typedef struct
 
 typedef struct
 {
+    UnityARVector4 primaryLightDirectionAndIntensity;
+    float *sphericalHarmonicsCoefficients;
+}UnityARDirectionalLightEstimate;
+
+enum UnityLightDataType
+{
+    LightEstimate,
+    DirectionalLightEstimate
+};
+
+typedef struct
+{
+    UnityLightDataType arLightingType;
+    UnityARLightEstimation arLightEstimate;
+    UnityARDirectionalLightEstimate arDirectionalLightEstimate;
+}UnityLightData;
+
+typedef struct
+{
     UnityARMatrix4x4 worldTransform;
     UnityARMatrix4x4 projectionMatrix;
     UnityARTrackingState trackingState;
     UnityARTrackingReason trackingReason;
     UnityVideoParams videoParams;
-    UnityARLightEstimation lightEstimation;
+    UnityLightData lightData;
     uint32_t getPointCloudData;
 } UnityARCamera;
 
@@ -339,6 +358,35 @@ inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anch
     anchorData.blendShapes = (__bridge void *) nativeAnchor.blendShapes;
 }
 
+inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFrame)
+{
+    if (arFrame.lightEstimate != NULL)
+    {
+        if ([arFrame.lightEstimate class] == [ARDirectionalLightEstimate class])
+        {
+            lightData.arLightingType = DirectionalLightEstimate;
+            ARDirectionalLightEstimate *dirLightEst = (ARDirectionalLightEstimate *) arFrame.lightEstimate;
+            lightData.arDirectionalLightEstimate.sphericalHarmonicsCoefficients = (float *) dirLightEst.sphericalHarmonicsCoefficients.bytes;
+
+            //[dirLightEst.sphericalHarmonicsCoefficients getBytes:lightData.arDirectionalLightEstimate.sphericalHarmonicsCoefficients length:sizeof(float)*27 ];
+
+            UnityARVector4 dirAndIntensity;
+            dirAndIntensity.x = dirLightEst.primaryLightDirection.x;
+            dirAndIntensity.y = dirLightEst.primaryLightDirection.y;
+            dirAndIntensity.z = dirLightEst.primaryLightDirection.z;
+            dirAndIntensity.w = dirLightEst.primaryLightIntensity;
+            lightData.arDirectionalLightEstimate.primaryLightDirectionAndIntensity = dirAndIntensity;
+        }
+        else
+        {
+            lightData.arLightingType = LightEstimate;
+            lightData.arLightEstimate.ambientIntensity = arFrame.lightEstimate.ambientIntensity;
+            lightData.arLightEstimate.ambientColorTemperature = arFrame.lightEstimate.ambientColorTemperature;
+        }
+    }
+    
+}
+
 @protocol UnityARAnchorEventDispatcher
 @required
     -(void)sendAnchorAddedEvent:(ARAnchor*)anchor;
@@ -523,8 +571,7 @@ static CGAffineTransform s_CurAffineTransform;
     unityARCamera.videoParams.texCoordScale =  screenAspect / imageAspect;
     s_ShaderScale = screenAspect / imageAspect;
     
-    unityARCamera.lightEstimation.ambientIntensity = frame.lightEstimate.ambientIntensity;
-    unityARCamera.lightEstimation.ambientColorTemperature = frame.lightEstimate.ambientColorTemperature;
+    UnityLightDataFromARFrame(unityARCamera.lightData, frame);
 
     unityARCamera.videoParams.yWidth = (uint32_t)imageWidth;
     unityARCamera.videoParams.yHeight = (uint32_t)imageHeight;

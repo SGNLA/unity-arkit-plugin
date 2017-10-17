@@ -40,7 +40,7 @@ namespace UnityEngine.XR.iOS {
         public ARTrackingState trackingState;
         public ARTrackingStateReason trackingReason;
 		public UnityVideoParams videoParams;
-		public UnityARLightData lightData;
+		public UnityMarshalLightData lightData;
         public uint getPointCloudData;
     };
 
