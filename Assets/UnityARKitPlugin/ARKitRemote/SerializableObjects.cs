@@ -197,11 +197,15 @@ namespace Utils
 		serializableUnityARLightData(UnityARLightData lightData)
 		{
 			whichLight = lightData.arLightingType;
-			lightSHC = lightData.arDirectonalLightEstimate.sphericalHarmonicsCoefficients;
-			Vector3 lightDir = lightData.arDirectonalLightEstimate.primaryLightDirection;
-			primaryLightDirAndIntensity = new SerializableVector4 (lightDir.x, lightDir.y, lightDir.z, lightData.arDirectonalLightEstimate.primaryLightIntensity);
-			ambientIntensity = lightData.arLightEstimate.ambientIntensity;
-			ambientColorTemperature = lightData.arLightEstimate.ambientColorTemperature;
+			if (whichLight == LightDataType.DirectionalLightEstimate) {
+				lightSHC = lightData.arDirectonalLightEstimate.sphericalHarmonicsCoefficients;
+				Vector3 lightDir = lightData.arDirectonalLightEstimate.primaryLightDirection;
+				float lightIntensity = lightData.arDirectonalLightEstimate.primaryLightIntensity;
+				primaryLightDirAndIntensity = new SerializableVector4 (lightDir.x, lightDir.y, lightDir.z, lightIntensity);
+			} else {
+				ambientIntensity = lightData.arLightEstimate.ambientIntensity;
+				ambientColorTemperature = lightData.arLightEstimate.ambientColorTemperature;
+			}
 		}
 
 		public static implicit operator serializableUnityARLightData(UnityARLightData rValue)
@@ -211,9 +215,14 @@ namespace Utils
 
 		public static implicit operator UnityARLightData(serializableUnityARLightData rValue)
 		{
+			UnityARDirectionalLightEstimate udle = null;
 			UnityARLightEstimate ule = new UnityARLightEstimate (rValue.ambientIntensity, rValue.ambientColorTemperature);
-			Vector3 lightDir = new Vector3(rValue.primaryLightDirAndIntensity.x, rValue.primaryLightDirAndIntensity.y, rValue.primaryLightDirAndIntensity.z);
-			UnityARDirectionalLightEstimate udle = new UnityARDirectionalLightEstimate (rValue.lightSHC, lightDir, rValue.primaryLightDirAndIntensity.w);
+
+			if (rValue.whichLight == LightDataType.DirectionalLightEstimate) {
+				Vector3 lightDir = new Vector3 (rValue.primaryLightDirAndIntensity.x, rValue.primaryLightDirAndIntensity.y, rValue.primaryLightDirAndIntensity.z);
+				udle = new UnityARDirectionalLightEstimate (rValue.lightSHC, lightDir, rValue.primaryLightDirAndIntensity.w);
+			} 
+
 			return new UnityARLightData(rValue.whichLight, ule, udle);
 		}
 
