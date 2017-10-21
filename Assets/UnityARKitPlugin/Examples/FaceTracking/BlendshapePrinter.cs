@@ -6,7 +6,7 @@ using UnityEngine.XR.iOS;
 public class BlendshapePrinter : MonoBehaviour {
 
 	bool enabled = false;
-	Dictionary<ARBlendShapeLocation, float> currentBlendShapes;
+	Dictionary<string, float> currentBlendShapes;
 
 	// Use this for initialization
 	void Start () {
@@ -21,15 +21,27 @@ public class BlendshapePrinter : MonoBehaviour {
 		if (enabled) {
 
 			string blendshapes = "";
-			foreach(KeyValuePair<ARBlendShapeLocation,float> kvp in currentBlendShapes) {
+			string shapeNames = "";
+			string valueNames = "";
+			foreach(KeyValuePair<string,float> kvp in currentBlendShapes) {
 				blendshapes += " [";
 				blendshapes += kvp.Key.ToString ();
 				blendshapes += ":";
 				blendshapes += kvp.Value.ToString ();
-				blendshapes += "] ";
+				blendshapes += "]\n";
+				shapeNames += "\"";
+				shapeNames += kvp.Key.ToString ();
+				shapeNames += "\",\n";
+				valueNames += kvp.Value.ToString ();
+				valueNames += "\n";
 			}
 
+			GUILayout.BeginHorizontal (GUILayout.ExpandHeight(true));
 			GUILayout.Box (blendshapes);
+			GUILayout.EndHorizontal ();
+
+			Debug.Log (shapeNames);
+			Debug.Log (valueNames);
 
 		}
 	}
