@@ -3,63 +3,64 @@ using System.Collections;
 using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
+using AOT;
 
 namespace UnityEngine.XR.iOS
 {
 
-	public enum ARBlendShapeLocation
+	public static class ARBlendShapeLocation
 	{
-		 ARBlendShapeLocationBrowDownLeft        ,   
-	     ARBlendShapeLocationBrowDownRight       ,   
-	     ARBlendShapeLocationBrowInnerUp         ,   
-	     ARBlendShapeLocationBrowOuterUpLeft     ,   
-	     ARBlendShapeLocationBrowOuterUpRight    ,   
-	     ARBlendShapeLocationCheekPuff           ,   
-	     ARBlendShapeLocationCheekSquintLeft     ,   
-	     ARBlendShapeLocationCheekSquintRight    ,   
-	     ARBlendShapeLocationEyeBlinkLeft        ,   
-	     ARBlendShapeLocationEyeBlinkRight       ,   
-	     ARBlendShapeLocationEyeLookDownLeft     ,   
-	     ARBlendShapeLocationEyeLookDownRight    ,   
-	     ARBlendShapeLocationEyeLookInLeft       ,   
-	     ARBlendShapeLocationEyeLookInRight      ,   
-	     ARBlendShapeLocationEyeLookOutLeft      ,   
-	     ARBlendShapeLocationEyeLookOutRight     ,   
-	     ARBlendShapeLocationEyeLookUpLeft       ,   
-	     ARBlendShapeLocationEyeLookUpRight      ,   
-	     ARBlendShapeLocationEyeSquintLeft       ,   
-	     ARBlendShapeLocationEyeSquintRight      ,   
-	     ARBlendShapeLocationEyeWideLeft         ,   
-	     ARBlendShapeLocationEyeWideRight        ,   
-	     ARBlendShapeLocationJawForward          ,   
-	     ARBlendShapeLocationJawLeft             ,   
-	     ARBlendShapeLocationJawOpen             ,   
-	     ARBlendShapeLocationJawRight            ,   
-	     ARBlendShapeLocationMouthClose          ,   
-	     ARBlendShapeLocationMouthDimpleLeft     ,   
-	     ARBlendShapeLocationMouthDimpleRight    ,   
-	     ARBlendShapeLocationMouthFrownLeft      ,   
-	     ARBlendShapeLocationMouthFrownRight     ,   
-	     ARBlendShapeLocationMouthFunnel         ,   
-	     ARBlendShapeLocationMouthLeft           ,   
-	     ARBlendShapeLocationMouthLowerDownLeft  ,   
-	     ARBlendShapeLocationMouthLowerDownRight ,   
-	     ARBlendShapeLocationMouthPressLeft      ,   
-	     ARBlendShapeLocationMouthPressRight     ,   
-	     ARBlendShapeLocationMouthPucker         ,   
-	     ARBlendShapeLocationMouthRight          ,   
-	     ARBlendShapeLocationMouthRollLower      ,   
-	     ARBlendShapeLocationMouthRollUpper      ,   
-	     ARBlendShapeLocationMouthShrugLower     ,   
-	     ARBlendShapeLocationMouthShrugUpper     ,   
-	     ARBlendShapeLocationMouthSmileLeft      ,   
-	     ARBlendShapeLocationMouthSmileRight     ,   
-	     ARBlendShapeLocationMouthStretchLeft    ,   
-	     ARBlendShapeLocationMouthStretchRight   ,   
-	     ARBlendShapeLocationMouthUpperUpLeft    ,   
-	     ARBlendShapeLocationMouthUpperUpRight   ,   
-	     ARBlendShapeLocationNoseSneerLeft       ,   
-	     ARBlendShapeLocationNoseSneerRight         
+		 public const string  BrowDownLeft        =   "browDown_L";
+	 	 public const string  BrowDownRight       =   "browDown_R";
+		 public const string  BrowInnerUp         =   "browInnerUp";
+		 public const string  BrowOuterUpLeft     =   "browOuterUp_L";
+		 public const string  BrowOuterUpRight    =   "browOuterUp_R";
+		 public const string  CheekPuff           =   "cheekPuff";
+		 public const string  CheekSquintLeft     =   "cheekSquint_L";
+		 public const string  CheekSquintRight    =   "cheekSquint_R";
+		 public const string  EyeBlinkLeft        =   "eyeBlink_L";
+		 public const string  EyeBlinkRight       =   "eyeBlink_R";
+		 public const string  EyeLookDownLeft     =   "eyeLookDown_L";
+		 public const string  EyeLookDownRight    =   "eyeLookDown_R";
+		 public const string  EyeLookInLeft       =   "eyeLookIn_L";
+		 public const string  EyeLookInRight      =   "eyeLookIn_R";
+		 public const string  EyeLookOutLeft      =   "eyeLookOut_L";
+		 public const string  EyeLookOutRight     =   "eyeLookOut_R";
+		 public const string  EyeLookUpLeft       =   "eyeLookUp_L";
+		 public const string  EyeLookUpRight      =   "eyeLookUp_R";
+		 public const string  EyeSquintLeft       =   "eyeSquint_L";
+		 public const string  EyeSquintRight      =   "eyeSquint_R";
+		 public const string  EyeWideLeft         =   "eyeWide_L";
+		 public const string  EyeWideRight        =   "eyeWide_R";
+		 public const string  JawForward          =   "jawForward";
+		 public const string  JawLeft             =   "jawLeft";
+		 public const string  JawOpen             =   "jawOpen";
+		 public const string  JawRight            =   "jawRight";
+		 public const string  MouthClose          =   "mouthClose";
+		 public const string  MouthDimpleLeft     =   "mouthDimple_L";
+		 public const string  MouthDimpleRight    =   "mouthDimple_R";
+		 public const string  MouthFrownLeft      =   "mouthFrown_L";
+		 public const string  MouthFrownRight     =   "mouthFrown_R";
+		 public const string  MouthFunnel         =   "mouthFunnel";
+		 public const string  MouthLeft           =   "mouthLeft";
+		 public const string  MouthLowerDownLeft  =   "mouthLowerDown_L";
+		 public const string  MouthLowerDownRight =   "mouthLowerDown_R";
+		 public const string  MouthPressLeft      =   "mouthPress_L";
+		 public const string  MouthPressRight     =   "mouthPress_R";
+		 public const string  MouthPucker         =   "mouthPucker";
+		 public const string  MouthRight          =   "mouthRight";
+		 public const string  MouthRollLower      =   "mouthRollLower";
+		 public const string  MouthRollUpper      =   "mouthRollUpper";
+		 public const string  MouthShrugLower     =   "mouthShrugLower";
+		 public const string  MouthShrugUpper     =   "mouthShrugUpper";
+		 public const string  MouthSmileLeft      =   "mouthSmile_L";
+		 public const string  MouthSmileRight     =   "mouthSmile_R";
+		 public const string  MouthStretchLeft    =   "mouthStretch_L";
+		 public const string  MouthStretchRight   =   "mouthStretch_R";
+		 public const string  MouthUpperUpLeft    =   "mouthUpperUp_L";
+		 public const string  MouthUpperUpRight   =   "mouthUpperUp_R";
+		 public const string  NoseSneerLeft       =   "noseSneer_L";
+		 public const string  NoseSneerRight      =   "noseSneer_R";
 	}
 
 
@@ -169,12 +170,14 @@ namespace UnityEngine.XR.iOS
 	public class ARFaceAnchor 
 	{
 		private UnityARFaceAnchorData faceAnchorData;
-		private Dictionary<ARBlendShapeLocation, float> managedDictionary;
+		private static Dictionary<string, float> blendshapesDictionary;
 
 		public ARFaceAnchor (UnityARFaceAnchorData ufad)
 		{
 			faceAnchorData = ufad;
-			managedDictionary = new Dictionary<ARBlendShapeLocation, float> ();
+			if (blendshapesDictionary == null) {
+				blendshapesDictionary = new Dictionary<string, float> ();
+			}
 		}
 		
 
@@ -193,24 +196,25 @@ namespace UnityEngine.XR.iOS
 
 		public ARFaceGeometry faceGeometry { get { return new ARFaceGeometry (faceAnchorData.faceGeometry);	} }
 
-		public Dictionary<ARBlendShapeLocation, float> blendShapes { get { return GetBlendShapesFromNative(faceAnchorData.blendShapes); } }
+		public Dictionary<string, float> blendShapes { get { return GetBlendShapesFromNative(faceAnchorData.blendShapes); } }
 
-		public delegate void DictionaryVisitorHandler(string key, float value);
+		delegate void DictionaryVisitorHandler(IntPtr keyPtr, float value);
 
 		[DllImport("__Internal")]
 		private static extern void GetBlendShapesInfo(IntPtr ptrDic, DictionaryVisitorHandler handler);
 
-		Dictionary<ARBlendShapeLocation, float> GetBlendShapesFromNative(IntPtr blendShapesPtr)
+		Dictionary<string, float> GetBlendShapesFromNative(IntPtr blendShapesPtr)
 		{
-			managedDictionary.Clear ();
+			blendshapesDictionary.Clear ();
 			GetBlendShapesInfo (blendShapesPtr, AddElementToManagedDictionary);
-			return managedDictionary;
+			return blendshapesDictionary;
 		}
 
-		void AddElementToManagedDictionary(string key, float value)
+		[MonoPInvokeCallback(typeof(DictionaryVisitorHandler))]
+		static void AddElementToManagedDictionary(IntPtr keyPtr, float value)
 		{
-			ARBlendShapeLocation arb = (ARBlendShapeLocation) Enum.Parse (typeof(ARBlendShapeLocation), key);
-			managedDictionary.Add (arb, value);
+			string key = Marshal.PtrToStringAuto(keyPtr);
+			blendshapesDictionary.Add(key, value);
 		}
 	}
 }
