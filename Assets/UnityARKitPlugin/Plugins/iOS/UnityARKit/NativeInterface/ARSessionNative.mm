@@ -275,7 +275,7 @@ inline void GetARSessionConfigurationFromARKitSessionConfiguration(ARKitSessionC
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
 }
 
-inline void GetARFaceConfigurationFromARKitFaceConfiguration(ARKitFaceTrackingConfiguration& unityConfig, ARFaceTrackingConfiguration* appleConfig)
+inline void GetARFaceConfigurationFromARKitFaceConfiguration(ARKitFaceTrackingConfiguration& unityConfig, ARConfiguration* appleConfig)
 {
     appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
@@ -912,11 +912,15 @@ extern "C" void StartSession(void* nativeSession, ARKitSessionConfiguration unit
 extern "C" void StartFaceTrackingSessionWithOptions(void* nativeSession, ARKitFaceTrackingConfiguration unityConfig, UnityARSessionRunOptions runOptions)
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
-    ARFaceTrackingConfiguration* config = [ARFaceTrackingConfiguration new];
-    ARSessionRunOptions runOpts = GetARSessionRunOptionsFromUnityARSessionRunOptions(runOptions);
-    GetARFaceConfigurationFromARKitFaceConfiguration(unityConfig, config);
-    [session->_session runWithConfiguration:config options:runOpts ];
-    [session setupMetal];
+    Class class_ARFaceTrackingConfiguration = NSClassFromString(@"ARFaceTrackingConfiguration");
+    if (class_ARFaceTrackingConfiguration)
+    {
+        ARConfiguration*  config = [class_ARFaceTrackingConfiguration new];
+        ARSessionRunOptions runOpts = GetARSessionRunOptionsFromUnityARSessionRunOptions(runOptions);
+        GetARFaceConfigurationFromARKitFaceConfiguration(unityConfig, config);
+        [session->_session runWithConfiguration:config options:runOpts ];
+        [session setupMetal];
+    }
 }
 
 extern "C" void StartFaceTrackingSession(void* nativeSession, ARKitFaceTrackingConfiguration unityConfig)
@@ -1082,7 +1086,12 @@ extern "C" bool IsARKitSessionConfigurationSupported()
 
 extern "C" bool IsARKitFaceTrackingConfigurationSupported()
 {
-    return ARFaceTrackingConfiguration.isSupported;
+    Class class_ARFaceTrackingConfiguration = NSClassFromString(@"ARFaceTrackingConfiguration");
+    if (class_ARFaceTrackingConfiguration)
+    {
+        return [class_ARFaceTrackingConfiguration performSelector:@selector(isSupported)];
+    }
+    return false;
 }
 
 extern "C" void GetBlendShapesInfo(void* ptrDictionary, void (*visitorFn)(const char* key, const float value))
