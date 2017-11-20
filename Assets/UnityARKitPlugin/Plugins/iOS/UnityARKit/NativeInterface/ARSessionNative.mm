@@ -352,7 +352,7 @@ inline void UnityARMatrix4x4FromCGAffineTransform(UnityARMatrix4x4& outMatrix, C
     {
         outMatrix.column0.x = displayTransform.a;
         outMatrix.column0.y = -displayTransform.c;
-        outMatrix.column0.z = -displayTransform.tx;
+        outMatrix.column0.z = 1.0f - displayTransform.tx;
         outMatrix.column1.x = displayTransform.b;
         outMatrix.column1.y = displayTransform.d;
         outMatrix.column1.z = displayTransform.ty;
