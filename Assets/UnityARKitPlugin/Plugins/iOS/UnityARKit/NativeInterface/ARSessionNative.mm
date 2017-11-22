@@ -367,6 +367,7 @@ inline void UnityARUserAnchorDataFromARAnchorPtr(UnityARUserAnchorData& anchorDa
     ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
 }
 
+#if ARKIT_USES_FACETRACKING
 inline void UnityARFaceGeometryFromARFaceGeometry(UnityARFaceGeometry& faceGeometry, ARFaceGeometry *arFaceGeometry)
 {
     faceGeometry.vertexCount = arFaceGeometry.vertexCount;
@@ -384,11 +385,13 @@ inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anch
     UnityARFaceGeometryFromARFaceGeometry(anchorData.faceGeometry, nativeAnchor.geometry);
     anchorData.blendShapes = (__bridge void *) nativeAnchor.blendShapes;
 }
+#endif
 
 inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFrame)
 {
     if (arFrame.lightEstimate != NULL)
     {
+#if ARKIT_USES_FACETRACKING
         if ([arFrame.lightEstimate class] == [ARDirectionalLightEstimate class])
         {
             lightData.arLightingType = DirectionalLightEstimate;
@@ -405,6 +408,7 @@ inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFram
             lightData.arDirectionalLightEstimate.primaryLightDirectionAndIntensity = dirAndIntensity;
         }
         else
+#endif
         {
             lightData.arLightingType = LightEstimate;
             lightData.arLightEstimate.ambientIntensity = arFrame.lightEstimate.ambientIntensity;
@@ -502,23 +506,29 @@ inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFram
 
 -(void)sendAnchorAddedEvent:(ARAnchor*)anchor
 {
+#if ARKIT_USES_FACETRACKING
     UnityARFaceAnchorData data;
     UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
     _anchorAddedCallback(data);
+#endif
 }
 
 -(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
 {
+#if ARKIT_USES_FACETRACKING
     UnityARFaceAnchorData data;
     UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
     _anchorRemovedCallback(data);
+#endif
 }
 
 -(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
 {
+#if ARKIT_USES_FACETRACKING
     UnityARFaceAnchorData data;
     UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
     _anchorUpdatedCallback(data);
+#endif
 }
 
 @end
@@ -855,12 +865,14 @@ extern "C" void session_SetFaceAnchorCallbacks(const void* session, UNITY_AR_FAC
                                                UNITY_AR_FACE_ANCHOR_CALLBACK faceAnchorUpdatedCallback,
                                                UNITY_AR_FACE_ANCHOR_CALLBACK faceAnchorRemovedCallback)
 {
+#if ARKIT_USES_FACETRACKING
     UnityARSession* nativeSession = (__bridge UnityARSession*)session;
     UnityARFaceAnchorCallbackWrapper* faceAnchorCallbacks = [[UnityARFaceAnchorCallbackWrapper alloc] init];
     faceAnchorCallbacks->_anchorAddedCallback = faceAnchorAddedCallback;
     faceAnchorCallbacks->_anchorUpdatedCallback = faceAnchorUpdatedCallback;
     faceAnchorCallbacks->_anchorRemovedCallback = faceAnchorRemovedCallback;
     [nativeSession->_classToCallbackMap setObject:faceAnchorCallbacks forKey:[ARFaceAnchor class]];
+#endif
 }
 
 extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitWorldTrackingSessionConfiguration unityConfig, UnityARSessionRunOptions runOptions)
@@ -911,16 +923,16 @@ extern "C" void StartSession(void* nativeSession, ARKitSessionConfiguration unit
 
 extern "C" void StartFaceTrackingSessionWithOptions(void* nativeSession, ARKitFaceTrackingConfiguration unityConfig, UnityARSessionRunOptions runOptions)
 {
+#if ARKIT_USES_FACETRACKING
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
-    Class class_ARFaceTrackingConfiguration = NSClassFromString(@"ARFaceTrackingConfiguration");
-    if (class_ARFaceTrackingConfiguration)
-    {
-        ARConfiguration*  config = [class_ARFaceTrackingConfiguration new];
-        ARSessionRunOptions runOpts = GetARSessionRunOptionsFromUnityARSessionRunOptions(runOptions);
-        GetARFaceConfigurationFromARKitFaceConfiguration(unityConfig, config);
-        [session->_session runWithConfiguration:config options:runOpts ];
-        [session setupMetal];
-    }
+    ARConfiguration* config = [ARFaceTrackingConfiguration new];
+    ARSessionRunOptions runOpts = GetARSessionRunOptionsFromUnityARSessionRunOptions(runOptions);
+    GetARFaceConfigurationFromARKitFaceConfiguration(unityConfig, config);
+    [session->_session runWithConfiguration:config options:runOpts ];
+    [session setupMetal];
+#else
+    [NSException raise:@"UnityARKitPluginFaceTrackingNotEnabled" format:@"UnityARKitPlugin: Trying to start FaceTracking session without enabling it in settings."];
+#endif
 }
 
 extern "C" void StartFaceTrackingSession(void* nativeSession, ARKitFaceTrackingConfiguration unityConfig)
@@ -1086,16 +1098,16 @@ extern "C" bool IsARKitSessionConfigurationSupported()
 
 extern "C" bool IsARKitFaceTrackingConfigurationSupported()
 {
-    Class class_ARFaceTrackingConfiguration = NSClassFromString(@"ARFaceTrackingConfiguration");
-    if (class_ARFaceTrackingConfiguration)
-    {
-        return [class_ARFaceTrackingConfiguration performSelector:@selector(isSupported)];
-    }
-    return false;
+#if ARKIT_USES_FACETRACKING
+    return ARFaceTrackingConfiguration.isSupported;
+#else
+    [NSException raise:@"UnityARKitPluginFaceTrackingNotEnabled" format:@"UnityARKitPlugin: Checking FaceTracking device support without enabling it in settings."];
+#endif
 }
 
 extern "C" void GetBlendShapesInfo(void* ptrDictionary, void (*visitorFn)(const char* key, const float value))
 {
+#if ARKIT_USES_FACETRACKING
     // Get your NSDictionary
     NSDictionary<ARBlendShapeLocation, NSNumber*> * dictionary = (__bridge NSDictionary<ARBlendShapeLocation, NSNumber*> *) ptrDictionary;
     
@@ -1104,4 +1116,5 @@ extern "C" void GetBlendShapesInfo(void* ptrDictionary, void (*visitorFn)(const 
         NSNumber* value = [dictionary objectForKey:key];
         visitorFn([key UTF8String], [value floatValue]);
     }
+#endif
 }
