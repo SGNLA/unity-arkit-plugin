@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEditor.iOS.Xcode;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,15 +75,30 @@ public class UnityARBuildPostprocessor
 
 		UnityEditor.iOS.Xcode.PBXProject proj = new UnityEditor.iOS.Xcode.PBXProject();
 		proj.ReadFromString(File.ReadAllText(projPath));
-        proj.AddFrameworkToProject(proj.TargetGuidByName("Unity-iPhone"), "ARKit.framework", false);
+		proj.AddFrameworkToProject(proj.TargetGuidByName("Unity-iPhone"), "ARKit.framework", false);
 		string target = proj.TargetGuidByName("Unity-iPhone");
 		Directory.CreateDirectory(Path.Combine(pathToBuiltProject, "Libraries/Unity"));
 
 		//check UnityARKitPluginSettings
 		UnityARKitPluginSettings ps = LoadSettings();
-		if (ps.AppRequiresARKit)
-		{
+		if (ps.AppRequiresARKit) {
 			//add plist entry
+			string plistPath = Path.Combine(pathToBuiltProject, "Info.plist");
+			PlistDocument plist = new PlistDocument();
+			plist.ReadFromString(File.ReadAllText(plistPath));
+			PlistElementDict rootDict = plist.root;
+
+			const string capsKey = "UIRequiredDeviceCapabilities";
+			PlistElementArray capsArray;
+			PlistElement pel;
+			if (rootDict.values.TryGetValue(capsKey, out pel)) {
+				capsArray = pel.AsArray();
+			}
+			else {
+				capsArray = rootDict.CreateArray(capsKey);
+			}
+			capsArray.AddString("arkit");
+			File.WriteAllText(plistPath, plist.WriteToString());
 		}
 
 		//add or replace define for facetracking
