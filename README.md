@@ -105,6 +105,7 @@ You should be able to build the UnityARKitScene.unity to iOS to get a taste of w
 ## Recent additions ##
 
 Face tracking API:
+
 * ARKit face tracking is possible on iPhone X and later ([blog](https://blogs.unity3d.com/2017/11/03/arkit-face-tracking-on-iphone-x/))
 
 Settings file that has options for plugin usage:
