@@ -10,15 +10,15 @@ to the underlying technology.
 The plugin is open sourced and is released under the MIT license (see LICENSE file in this folder)
 
 ## Requirements: ##
-* Unity v5.6.1p1+
+* Unity v5.6.2+
 * iOS 11+
-* Xcode beta 9 with latest iOS SDK that contains ARKit Framework
+* Xcode 9.x with latest iOS SDK that contains ARKit Framework
 * iOS device that supports ARKit (iPhone 6S or later, iPad (2017) or later)
 
 
 ## How to use this code drop:##
 
-The code drop is a Unity project that you can load up in any Unity version that is later than v5.6.1p1.  The Unity
+The code drop is a Unity project that you can load up in any Unity version that is later than v5.6.2.  The Unity
 project contains the plugin sources and some example scenes and components that you may use in your own projects.  
 
 Here is a summary of the important files in the plugin:
@@ -69,6 +69,7 @@ It also contains events that you can provide these delegates for:
 ```
 
 These are the list of events you can subscribe to:
+
 ```
 #!C#
 		public static event ARFrameUpdate ARFrameUpdatedEvent;
@@ -100,6 +101,15 @@ These are the list of events you can subscribe to:
 "/Assest/Plugins/iOS/UnityARKit/UnityARUserAnchorComponent.cs" - this component adds and removes Anchors from ARKit based on the lifecycle of the GameObject it's added to.
 
 You should be able to build the UnityARKitScene.unity to iOS to get a taste of what ARKit is capable of.  It demostrates all the basic functionality of the ARKit in this scene.  
+
+## Recent additions ##
+
+Settings file that has options for plugin usage:
+ 
+* ARKit uses Face Tracking API ([link to usage](https://forum.unity.com/threads/submitting-arkit-apps-to-appstore-without-face-tracking.504572/#post-3297235))
+* App requires ARKit device ([link to usage](https://forum.unity.com/threads/arkit-support-for-ios-via-unity-arkit-plugin.474385/page-43#post-3297582))
+
+## Summary ##
 
 See TUTORIAL.txt in this project for more detailed steps on setting up a project step by step.
 
