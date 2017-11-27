@@ -64,6 +64,7 @@ namespace UnityEngine.XR.iOS
             }
 
             planeAnchorMap.Clear ();
+            UnsubscribeEvents();
         }
 
 		public List<ARPlaneAnchorGameObject> GetCurrentPlaneAnchors()
