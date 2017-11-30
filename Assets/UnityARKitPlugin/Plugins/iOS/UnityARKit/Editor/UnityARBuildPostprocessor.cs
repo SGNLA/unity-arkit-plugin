@@ -79,29 +79,33 @@ public class UnityARBuildPostprocessor
 		string target = proj.TargetGuidByName("Unity-iPhone");
 		Directory.CreateDirectory(Path.Combine(pathToBuiltProject, "Libraries/Unity"));
 
-		//check UnityARKitPluginSettings
+		// Check UnityARKitPluginSettings
 		UnityARKitPluginSettings ps = LoadSettings();
-		if (ps.AppRequiresARKit) {
-			//add plist entry
-			string plistPath = Path.Combine(pathToBuiltProject, "Info.plist");
-			PlistDocument plist = new PlistDocument();
-			plist.ReadFromString(File.ReadAllText(plistPath));
-			PlistElementDict rootDict = plist.root;
+		string plistPath = Path.Combine(pathToBuiltProject, "Info.plist");
+		PlistDocument plist = new PlistDocument();
+		plist.ReadFromString(File.ReadAllText(plistPath));
+		PlistElementDict rootDict = plist.root;
 
-			const string capsKey = "UIRequiredDeviceCapabilities";
-			PlistElementArray capsArray;
-			PlistElement pel;
-			if (rootDict.values.TryGetValue(capsKey, out pel)) {
-				capsArray = pel.AsArray();
-			}
-			else {
-				capsArray = rootDict.CreateArray(capsKey);
-			}
-			capsArray.AddString("arkit");
-			File.WriteAllText(plistPath, plist.WriteToString());
+		// Get or create array to manage device capabilities
+		const string capsKey = "UIRequiredDeviceCapabilities";
+		PlistElementArray capsArray;
+		PlistElement pel;
+		if (rootDict.values.TryGetValue(capsKey, out pel)) {
+			capsArray = pel.AsArray();
 		}
+		else {
+			capsArray = rootDict.CreateArray(capsKey);
+		}
+		// Remove any existing "arkit" plist entries
+		const string arkitStr = "arkit";
+		capsArray.values.RemoveAll(x => arkitStr.Equals(x.AsString()));
+		if (ps.AppRequiresARKit) {
+			// Add "arkit" plist entry
+			capsArray.AddString(arkitStr);
+		}
+		File.WriteAllText(plistPath, plist.WriteToString());
 
-		//add or replace define for facetracking
+		// Add or replace define for facetracking
 		UpdateDefinesInFile(pathToBuiltProject + "/Classes/Preprocessor.h", new Dictionary<string, bool>() {
 			{ "ARKIT_USES_FACETRACKING", ps.m_ARKitUsesFacetracking }
 		});
