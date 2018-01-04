@@ -42,7 +42,8 @@ namespace UnityEngine.XR.iOS {
 		public UnityVideoParams videoParams;
 		public UnityMarshalLightData lightData;
         public UnityARMatrix4x4 displayTransform;
-        public uint getPointCloudData;
+		public uint getPointCloudData;
+        public uint getLightEstimation;
     };
 
     public struct UnityARCamera
@@ -510,7 +511,11 @@ namespace UnityEngine.XR.iOS {
             pubCamera.trackingState = camera.trackingState;
             pubCamera.trackingReason = camera.trackingReason;
 			pubCamera.videoParams = camera.videoParams;
-			pubCamera.lightData = camera.lightData;
+			if (camera.getLightEstimation == 1) 
+			{
+				pubCamera.lightData = camera.lightData;
+			}
+
             pubCamera.displayTransform = camera.displayTransform;
             s_Camera = pubCamera;
 
