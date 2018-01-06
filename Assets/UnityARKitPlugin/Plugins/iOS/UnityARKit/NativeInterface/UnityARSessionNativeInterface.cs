@@ -463,6 +463,31 @@ namespace UnityEngine.XR.iOS {
 			}
 		}
 
+		public static void RunAddAnchorCallbacks(ARFaceAnchor arFaceAnchor)
+		{
+			if (ARFaceAnchorAddedEvent != null)
+			{
+				ARFaceAnchorAddedEvent(arFaceAnchor);
+			}
+		}
+
+		public static void RunUpdateAnchorCallbacks(ARFaceAnchor arFaceAnchor)
+		{
+			if (ARFaceAnchorUpdatedEvent != null)
+			{
+				ARFaceAnchorUpdatedEvent(arFaceAnchor); 
+			}
+		}
+
+		public static void RunRemoveAnchorCallbacks(ARFaceAnchor arFaceAnchor)
+		{
+			if (ARFaceAnchorRemovedEvent != null)
+			{
+				ARFaceAnchorRemovedEvent(arFaceAnchor);
+			}
+		}
+
+
 
 #endif
 
@@ -674,6 +699,7 @@ namespace UnityEngine.XR.iOS {
 #endregion
 
 #region Face Anchors
+		#if !UNITY_EDITOR
 		[MonoPInvokeCallback(typeof(internal_ARFaceAnchorAdded))]
 		static void _face_anchor_added(UnityARFaceAnchorData anchor)
 		{
@@ -702,6 +728,7 @@ namespace UnityEngine.XR.iOS {
 				ARFaceAnchorRemovedEvent(arFaceAnchor);
 			}
 		}
+		#endif
 #endregion
 
 	    [MonoPInvokeCallback(typeof(ARSessionFailed))]
