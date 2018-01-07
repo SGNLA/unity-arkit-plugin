@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.XR.iOS;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Utils
 {
@@ -410,12 +411,14 @@ namespace Utils
 	{
 		public serializableUnityARMatrix4x4 worldTransform;
 		public serializableFaceGeometry faceGeometry;
+		public Dictionary<string, float> arBlendShapes;
 		public byte[] identifierStr;
 
-		public serializableUnityARFaceAnchor( serializableUnityARMatrix4x4 wt, serializableFaceGeometry fg, byte [] idstr)
+		public serializableUnityARFaceAnchor( serializableUnityARMatrix4x4 wt, serializableFaceGeometry fg, Dictionary<string, float> bs, byte [] idstr)
 		{
 			worldTransform = wt;
 			faceGeometry = fg;
+			arBlendShapes = bs;
 			identifierStr = idstr;
 		}
 
@@ -431,8 +434,7 @@ namespace Utils
 			serializableUnityARMatrix4x4 wt = rValue.transform;
 			serializableFaceGeometry sfg = rValue.faceGeometry;
 			byte[] idstr = Encoding.UTF8.GetBytes (rValue.identifierStr);
-			return new serializableUnityARFaceAnchor(wt, sfg, idstr);
-			//return new serializableUnityARFaceAnchor(wt, null, idstr);
+			return new serializableUnityARFaceAnchor(wt, sfg, rValue.blendShapes, idstr);
 		}
 		#endif
 	};
