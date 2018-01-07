@@ -44,7 +44,7 @@ namespace UnityEngine.XR.iOS
 
 		public ARFaceGeometry faceGeometry { get { return new ARFaceGeometry (m_sfa.faceGeometry);	} }
 
-		public Dictionary<string, float> blendShapes { get { return new Dictionary<string,float>(); } }
+		public Dictionary<string, float> blendShapes { get { return m_sfa.arBlendShapes; } }
 
 	}
 	#endif
