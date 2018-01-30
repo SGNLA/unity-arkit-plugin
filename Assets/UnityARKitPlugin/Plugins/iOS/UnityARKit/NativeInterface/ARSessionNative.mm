@@ -111,6 +111,7 @@ enum UnityARTrackingReason
     UnityARTrackingStateReasonInitializing,
     UnityARTrackingStateReasonExcessiveMotion,
     UnityARTrackingStateReasonInsufficientFeatures,
+    UnityARTrackingStateReasonRelocalizing,
 };
 
 typedef struct
@@ -181,6 +182,7 @@ typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
 typedef void (*UNITY_AR_FACE_ANCHOR_CALLBACK)(UnityARFaceAnchorData anchorData);
 typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
 typedef void (*UNITY_AR_SESSION_VOID_CALLBACK)(void);
+typedef bool (*UNITY_AR_SESSION_RELOCALIZE_CALLBACK)(void);
 typedef void (*UNITY_AR_SESSION_TRACKING_CHANGED)(UnityARCamera camera);
 
 // These don't all need to be static data, but no other better place for them at the moment.
@@ -249,6 +251,8 @@ static inline UnityARTrackingReason GetUnityARTrackingReasonFromARTrackingReason
             return UnityARTrackingStateReasonExcessiveMotion;
         case ARTrackingStateReasonInsufficientFeatures:
             return UnityARTrackingStateReasonInsufficientFeatures;
+        case ARTrackingStateReasonRelocalizing:
+            return UnityARTrackingStateReasonRelocalizing;
         default:
             [NSException raise:@"UnrecognizedARTrackingStateReason" format:@"Unrecognized ARTrackingStateReason: %ld", (long)trackingReason];
             break;
@@ -546,6 +550,7 @@ static UnityPixelBuffer s_UnityPixelBuffers;
     UNITY_AR_SESSION_FAILED_CALLBACK _arSessionFailedCallback;
     UNITY_AR_SESSION_VOID_CALLBACK _arSessionInterrupted;
     UNITY_AR_SESSION_VOID_CALLBACK _arSessionInterruptionEnded;
+    UNITY_AR_SESSION_RELOCALIZE_CALLBACK _arSessionShouldRelocalize;
     UNITY_AR_SESSION_TRACKING_CHANGED _arSessionTrackingChanged;
 
     NSMutableDictionary* _classToCallbackMap;
@@ -798,6 +803,15 @@ static CGAffineTransform s_CurAffineTransform;
     }
 }
 
+- (BOOL)sessionShouldAttemptRelocalization:(ARSession *)session
+{
+    if (_arSessionShouldRelocalize != NULL)
+    {
+        return _arSessionShouldRelocalize();
+    }
+    return NO;
+}
+
 - (void) sendAnchorRemovedEventToUnity:(NSArray<ARAnchor*>*)anchors
 {
     for (ARAnchor* anchorPtr in anchors)
@@ -835,6 +849,7 @@ extern "C" void session_SetSessionCallbacks(const void* session, UNITY_AR_FRAME_
                                             UNITY_AR_SESSION_FAILED_CALLBACK sessionFailed,
                                             UNITY_AR_SESSION_VOID_CALLBACK sessionInterrupted,
                                             UNITY_AR_SESSION_VOID_CALLBACK sessionInterruptionEnded,
+                                            UNITY_AR_SESSION_RELOCALIZE_CALLBACK sessionShouldRelocalize,
                                             UNITY_AR_SESSION_TRACKING_CHANGED trackingChanged)
 {
     UnityARSession* nativeSession = (__bridge UnityARSession*)session;
@@ -842,6 +857,7 @@ extern "C" void session_SetSessionCallbacks(const void* session, UNITY_AR_FRAME_
     nativeSession->_arSessionFailedCallback = sessionFailed;
     nativeSession->_arSessionInterrupted = sessionInterrupted;
     nativeSession->_arSessionInterruptionEnded = sessionInterruptionEnded;
+    nativeSession->_arSessionShouldRelocalize = sessionShouldRelocalize;
     nativeSession->_arSessionTrackingChanged = trackingChanged;
 }
 
