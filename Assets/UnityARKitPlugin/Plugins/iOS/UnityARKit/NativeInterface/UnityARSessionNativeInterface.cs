@@ -314,10 +314,13 @@ namespace UnityEngine.XR.iOS {
         public static event ARSessionFailed ARSessionFailedEvent;
 
         public delegate void ARSessionCallback();
+		public delegate bool ARSessionLocalizeCallback();
         public static event ARSessionCallback ARSessionInterruptedEvent;
         public static event ARSessionCallback ARSessioninterruptionEndedEvent;
         public delegate void ARSessionTrackingChanged(UnityARCamera camera);
         public static event ARSessionTrackingChanged ARSessionTrackingChangedEvent;
+
+		public static bool ARSessionShouldAttemptRelocalization { get; set; }
 
         delegate void internal_ARFrameUpdate(internal_UnityARCamera camera);
 		public delegate void internal_ARAnchorAdded(UnityARAnchorData anchorData);
@@ -345,6 +348,7 @@ namespace UnityEngine.XR.iOS {
                                             ARSessionFailed sessionFailed,
                                             ARSessionCallback sessionInterrupted,
                                             ARSessionCallback sessionInterruptionEnded,
+											ARSessionLocalizeCallback sessionShouldRelocalize,
                                             internal_ARSessionTrackingChanged trackingChanged);
 
         [DllImport("__Internal")]
@@ -417,7 +421,8 @@ namespace UnityEngine.XR.iOS {
 		{
 #if !UNITY_EDITOR
 	        m_NativeARSession = unity_CreateNativeARSession();
-            session_SetSessionCallbacks(m_NativeARSession, _frame_update, _ar_session_failed, _ar_session_interrupted, _ar_session_interruption_ended, _ar_tracking_changed);
+            session_SetSessionCallbacks(m_NativeARSession, _frame_update, _ar_session_failed, _ar_session_interrupted, 
+			_ar_session_interruption_ended, _ar_session_should_relocalize, _ar_tracking_changed);
             session_SetPlaneAnchorCallbacks(m_NativeARSession, _anchor_added, _anchor_updated, _anchor_removed);
             session_SetUserAnchorCallbacks(m_NativeARSession, _user_anchor_added, _user_anchor_updated, _user_anchor_removed);
 			session_SetFaceAnchorCallbacks(m_NativeARSession, _face_anchor_added, _face_anchor_updated, _face_anchor_removed);
@@ -783,6 +788,7 @@ namespace UnityEngine.XR.iOS {
 
         }
 
+
 	    [MonoPInvokeCallback(typeof(ARSessionCallback))]
 		static void _ar_session_interruption_ended()
 		{
@@ -791,6 +797,13 @@ namespace UnityEngine.XR.iOS {
             {
                 ARSessioninterruptionEndedEvent();
             }
+		}
+
+		[MonoPInvokeCallback(typeof(ARSessionLocalizeCallback))]
+		static bool _ar_session_should_relocalize()
+		{
+			Debug.Log("_ar_session_should_relocalize");
+			return ARSessionShouldAttemptRelocalization;
 		}
 
         public void RunWithConfigAndOptions(ARKitWorldTrackingSessionConfiguration config, UnityARSessionRunOption runOptions)
