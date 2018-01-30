@@ -182,7 +182,9 @@ namespace UnityEngine.XR.iOS {
 	public enum UnityARPlaneDetection
 	{
 	    None = 0,
-	    Horizontal = (1 << 0)
+	    Horizontal = (1 << 0),
+		Vertical = (1 << 1),
+		HorizontalAndVertical = (1 << 1) | (1 << 0)
 	}
    
     public struct ARKitSessionConfiguration

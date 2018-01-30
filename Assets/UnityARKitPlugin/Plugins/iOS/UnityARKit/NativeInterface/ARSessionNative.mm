@@ -217,6 +217,8 @@ static inline ARPlaneDetection GetARPlaneDetectionFromUnityARPlaneDetection(Unit
         ret |= ARPlaneDetectionNone;
     if ((planeDetection & UnityARPlaneDetectionHorizontal) != 0)
         ret |= ARPlaneDetectionHorizontal;
+    if ((planeDetection & UnityARPlaneDetectionVertical) != 0)
+        ret |= ARPlaneDetectionVertical;
     return ret;
 }
 
