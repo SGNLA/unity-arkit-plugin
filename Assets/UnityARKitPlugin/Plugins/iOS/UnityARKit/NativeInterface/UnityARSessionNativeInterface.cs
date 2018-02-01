@@ -71,45 +71,6 @@ namespace UnityEngine.XR.iOS {
     };
 
 
-    public struct UnityARAnchorData
-	{
-		public IntPtr ptrIdentifier;
-
-		/**
- 		The transformation matrix that defines the anchor's rotation, translation and scale in world coordinates.
-		 */
-		public UnityARMatrix4x4 transform;
-
-		/**
-		 The alignment of the plane.
-		 */
-
-        public ARPlaneAnchorAlignment alignment;
-
-        /**
-        The center of the plane in the anchor’s coordinate space.
-        */
-
-        public Vector4 center;
-
-        /**
-        The extent of the plane in the anchor’s coordinate space.
-         */
-        public Vector4 extent;
-
-        public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
-
-        public static UnityARAnchorData UnityARAnchorDataFromGameObject(GameObject go) {
-            // create an anchor data struct from a game object transform
-            Matrix4x4 matrix = Matrix4x4.TRS(go.transform.position, go.transform.rotation, go.transform.localScale);
-            UnityARAnchorData ad = new UnityARAnchorData();
-            ad.transform.column0 = matrix.GetColumn(0);
-            ad.transform.column1 = matrix.GetColumn(1);
-            ad.transform.column2 = matrix.GetColumn(2);
-            ad.transform.column3 = matrix.GetColumn(3);
-            return ad;
-        }
-	};
 
     public struct UnityARUserAnchorData 
 	{
@@ -623,26 +584,7 @@ namespace UnityEngine.XR.iOS {
             }
 
         }
-
-		static ARPlaneAnchor GetPlaneAnchorFromAnchorData(UnityARAnchorData anchor)
-		{
-			//get the identifier for this anchor from the pointer
-			ARPlaneAnchor arPlaneAnchor = new ARPlaneAnchor ();
-            arPlaneAnchor.identifier = Marshal.PtrToStringAuto(anchor.ptrIdentifier);
-
-			Matrix4x4 matrix = new Matrix4x4 ();
-	        matrix.SetColumn(0, anchor.transform.column0);
-	        matrix.SetColumn(1, anchor.transform.column1);
-	        matrix.SetColumn(2, anchor.transform.column2);
-	        matrix.SetColumn(3, anchor.transform.column3);
-
-	        arPlaneAnchor.transform =  matrix;
-			arPlaneAnchor.alignment = anchor.alignment;
-            arPlaneAnchor.center = new Vector3(anchor.center.x, anchor.center.y, anchor.center.z);
-            arPlaneAnchor.extent = new Vector3(anchor.extent.x, anchor.extent.y, anchor.extent.z);
-			return arPlaneAnchor;
-		}
-
+			
 		static ARUserAnchor GetUserAnchorFromAnchorData(UnityARUserAnchorData anchor)
 		{
 			//get the identifier for this anchor from the pointer
@@ -674,12 +616,13 @@ namespace UnityEngine.XR.iOS {
         }
 
 #region Plane Anchors
-	    [MonoPInvokeCallback(typeof(internal_ARAnchorAdded))]
+		#if !UNITY_EDITOR
+		[MonoPInvokeCallback(typeof(internal_ARAnchorAdded))]
         static void _anchor_added(UnityARAnchorData anchor)
         {
             if (ARAnchorAddedEvent != null)
             {
-				ARPlaneAnchor arPlaneAnchor = GetPlaneAnchorFromAnchorData(anchor);
+				ARPlaneAnchor arPlaneAnchor = new ARPlaneAnchor(anchor);
 				ARAnchorAddedEvent(arPlaneAnchor);
             }
         }
@@ -689,8 +632,9 @@ namespace UnityEngine.XR.iOS {
         {
             if (ARAnchorUpdatedEvent != null)
             {
-				ARPlaneAnchor arPlaneAnchor = GetPlaneAnchorFromAnchorData(anchor);
-				ARAnchorUpdatedEvent(arPlaneAnchor); }
+				ARPlaneAnchor arPlaneAnchor = new ARPlaneAnchor(anchor);
+				ARAnchorUpdatedEvent(arPlaneAnchor); 
+			}
 	    }
 
 	    [MonoPInvokeCallback(typeof(internal_ARAnchorRemoved))]
@@ -698,10 +642,11 @@ namespace UnityEngine.XR.iOS {
 	    {
             if (ARAnchorRemovedEvent != null)
             {
-				ARPlaneAnchor arPlaneAnchor = GetPlaneAnchorFromAnchorData(anchor);
+				ARPlaneAnchor arPlaneAnchor = new ARPlaneAnchor(anchor);
                 ARAnchorRemovedEvent(arPlaneAnchor);
             }
 	    }
+		#endif
 #endregion
 
 #region User Anchors

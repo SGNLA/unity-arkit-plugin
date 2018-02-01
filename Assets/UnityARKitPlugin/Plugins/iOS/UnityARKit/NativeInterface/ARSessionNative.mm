@@ -66,11 +66,25 @@ enum UnityARSessionRunOptions
 
 typedef struct
 {
+    NSUInteger vertexCount;
+    float *vertices;
+    NSUInteger textureCoordinateCount;
+    float *textureCoordinates;
+    NSUInteger triangleCount;
+    int *triangleIndices;
+    NSUInteger boundaryVertexCount;
+    float *boundaryVertices;
+} UnityARPlaneGeometry;
+
+
+typedef struct
+{
     void* identifier;
     UnityARMatrix4x4 transform;
     ARPlaneAnchorAlignment alignment;
     UnityARVector4 center;
     UnityARVector4 extent;
+    UnityARPlaneGeometry planeGeometry;
 } UnityARAnchorData;
 
 typedef struct
@@ -329,6 +343,19 @@ static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, 
     unityARCamera.getPointCloudData = getPointCloudData;
 }
 
+inline void UnityARPlaneGeometryFromARPlaneGeometry(UnityARPlaneGeometry& planeGeometry, ARPlaneGeometry *arPlaneGeometry)
+{
+    planeGeometry.vertexCount = arPlaneGeometry.vertexCount;
+    planeGeometry.triangleCount = arPlaneGeometry.triangleCount;
+    planeGeometry.textureCoordinateCount = arPlaneGeometry.textureCoordinateCount;
+    planeGeometry.boundaryVertexCount = arPlaneGeometry.boundaryVertexCount;
+    planeGeometry.vertices = (float *) arPlaneGeometry.vertices;
+    planeGeometry.triangleIndices = (int *) arPlaneGeometry.triangleIndices;
+    planeGeometry.textureCoordinates = (float *) arPlaneGeometry.textureCoordinates;
+    planeGeometry.boundaryVertices = (float *) arPlaneGeometry.boundaryVertices;
+    
+}
+
 inline void UnityARAnchorDataFromARAnchorPtr(UnityARAnchorData& anchorData, ARPlaneAnchor* nativeAnchor)
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
@@ -340,6 +367,7 @@ inline void UnityARAnchorDataFromARAnchorPtr(UnityARAnchorData& anchorData, ARPl
     anchorData.extent.x = nativeAnchor.extent.x;
     anchorData.extent.y = nativeAnchor.extent.y;
     anchorData.extent.z = nativeAnchor.extent.z;
+    UnityARPlaneGeometryFromARPlaneGeometry(anchorData.planeGeometry, nativeAnchor.geometry);
 }
 
 inline void UnityARMatrix4x4FromCGAffineTransform(UnityARMatrix4x4& outMatrix, CGAffineTransform displayTransform, BOOL isLandscape)
