@@ -46,7 +46,7 @@ typedef struct
     UnityARPlaneDetection planeDetection;
     uint32_t getPointCloudData;
     uint32_t enableLightEstimation;
-
+    char *arResourceGroup;
 } ARKitWorldTrackingSessionConfiguration;
 
 typedef struct
@@ -110,6 +110,14 @@ typedef struct
     UnityARFaceGeometry faceGeometry;
     void *blendShapes;  //NSDictionary<ARBlendShapeLocation, NSNumber*> *
 } UnityARFaceAnchorData;
+
+typedef struct
+{
+    void* identifier;
+    UnityARMatrix4x4 transform;
+    void* referenceImage;
+} UnityARImageAnchorData;
+
 
 
 enum UnityARTrackingState
@@ -194,6 +202,7 @@ typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
 typedef void (*UNITY_AR_ANCHOR_CALLBACK)(UnityARAnchorData anchorData);
 typedef void (*UNITY_AR_USER_ANCHOR_CALLBACK)(UnityARUserAnchorData anchorData);
 typedef void (*UNITY_AR_FACE_ANCHOR_CALLBACK)(UnityARFaceAnchorData anchorData);
+typedef void (*UNITY_AR_IMAGE_ANCHOR_CALLBACK)(UnityARImageAnchorData anchorData);
 typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
 typedef void (*UNITY_AR_SESSION_VOID_CALLBACK)(void);
 typedef bool (*UNITY_AR_SESSION_RELOCALIZE_CALLBACK)(void);
@@ -422,6 +431,13 @@ inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anch
 }
 #endif
 
+inline void UnityARImageAnchorDataFromARImageAnchorPtr(UnityARImageAnchorData& anchorData, ARImageAnchor* nativeAnchor)
+{
+    anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
+    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
+    anchorData.referenceImage = (__bridge void*)nativeAnchor.referenceImage;
+}
+
 inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFrame)
 {
     if (arFrame.lightEstimate != NULL)
@@ -564,6 +580,40 @@ inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFram
     UnityARFaceAnchorDataFromARFaceAnchorPtr(data, (ARFaceAnchor*)anchor);
     _anchorUpdatedCallback(data);
 #endif
+}
+
+@end
+
+@interface UnityARImageAnchorCallbackWrapper : NSObject <UnityARAnchorEventDispatcher>
+{
+@public
+    UNITY_AR_IMAGE_ANCHOR_CALLBACK _anchorAddedCallback;
+    UNITY_AR_IMAGE_ANCHOR_CALLBACK _anchorUpdatedCallback;
+    UNITY_AR_IMAGE_ANCHOR_CALLBACK _anchorRemovedCallback;
+}
+@end
+
+@implementation UnityARImageAnchorCallbackWrapper
+
+-(void)sendAnchorAddedEvent:(ARAnchor*)anchor
+{
+    UnityARImageAnchorData data;
+    UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    _anchorAddedCallback(data);
+}
+
+-(void)sendAnchorRemovedEvent:(ARAnchor*)anchor
+{
+    UnityARImageAnchorData data;
+    UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    _anchorRemovedCallback(data);
+}
+
+-(void)sendAnchorUpdatedEvent:(ARAnchor*)anchor
+{
+    UnityARImageAnchorData data;
+    UnityARImageAnchorDataFromARImageAnchorPtr(data, (ARImageAnchor*)anchor);
+    _anchorUpdatedCallback(data);
 }
 
 @end
@@ -927,6 +977,18 @@ extern "C" void session_SetFaceAnchorCallbacks(const void* session, UNITY_AR_FAC
 #endif
 }
 
+extern "C" void session_SetImageAnchorCallbacks(const void* session, UNITY_AR_IMAGE_ANCHOR_CALLBACK imageAnchorAddedCallback,
+                                               UNITY_AR_IMAGE_ANCHOR_CALLBACK imageAnchorUpdatedCallback,
+                                               UNITY_AR_IMAGE_ANCHOR_CALLBACK imageAnchorRemovedCallback)
+{
+    UnityARSession* nativeSession = (__bridge UnityARSession*)session;
+    UnityARImageAnchorCallbackWrapper* imageAnchorCallbacks = [[UnityARImageAnchorCallbackWrapper alloc] init];
+    imageAnchorCallbacks->_anchorAddedCallback = imageAnchorAddedCallback;
+    imageAnchorCallbacks->_anchorUpdatedCallback = imageAnchorUpdatedCallback;
+    imageAnchorCallbacks->_anchorRemovedCallback = imageAnchorRemovedCallback;
+    [nativeSession->_classToCallbackMap setObject:imageAnchorCallbacks forKey:[ARImageAnchor class]];
+}
+
 extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitWorldTrackingSessionConfiguration unityConfig, UnityARSessionRunOptions runOptions)
 {
     UnityARSession* session = (__bridge UnityARSession*)nativeSession;
@@ -935,6 +997,14 @@ extern "C" void StartWorldTrackingSessionWithOptions(void* nativeSession, ARKitW
     GetARSessionConfigurationFromARKitWorldTrackingSessionConfiguration(unityConfig, config);
     session->_getPointCloudData = (BOOL) unityConfig.getPointCloudData;
     session->_getLightEstimation = (BOOL) unityConfig.enableLightEstimation;
+    
+    if(unityConfig.arResourceGroup != NULL && strlen(unityConfig.arResourceGroup) > 0)
+    {
+        NSString *strResourceGroup = [[NSString alloc] initWithUTF8String:unityConfig.arResourceGroup];
+        NSSet<ARReferenceImage *> *referenceImages = [ARReferenceImage referenceImagesInGroupNamed:strResourceGroup bundle:nil];
+        config.detectionImages = referenceImages;
+    }
+
     [session->_session runWithConfiguration:config options:runOpts ];
     [session setupMetal];
 }
@@ -948,6 +1018,14 @@ extern "C" void StartWorldTrackingSession(void* nativeSession, ARKitWorldTrackin
     GetARSessionConfigurationFromARKitWorldTrackingSessionConfiguration(unityConfig, config);
     session->_getPointCloudData = (BOOL) unityConfig.getPointCloudData;
     session->_getLightEstimation = (BOOL) unityConfig.enableLightEstimation;
+    
+    if(unityConfig.arResourceGroup != NULL && strlen(unityConfig.arResourceGroup) > 0)
+    {
+        NSString *strResourceGroup = [[NSString alloc] initWithUTF8String:unityConfig.arResourceGroup];
+        NSSet<ARReferenceImage *> *referenceImages = [ARReferenceImage referenceImagesInGroupNamed:strResourceGroup bundle:nil];
+        config.detectionImages = referenceImages;
+    }
+
     [session->_session runWithConfiguration:config];
     [session setupMetal];
 }

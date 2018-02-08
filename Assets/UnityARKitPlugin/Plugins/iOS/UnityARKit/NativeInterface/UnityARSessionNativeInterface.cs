@@ -176,17 +176,20 @@ namespace UnityEngine.XR.iOS {
 	    public UnityARPlaneDetection planeDetection;
         public bool getPointCloudData;
         public bool enableLightEstimation;
-        public bool IsSupported { get { return IsARKitWorldTrackingSessionConfigurationSupported(); } private set {} }
+		public string arResourceGroupName;
+		public bool IsSupported { get { return IsARKitWorldTrackingSessionConfigurationSupported(); } private set {} }
 
 	    public ARKitWorldTrackingSessionConfiguration(UnityARAlignment alignment = UnityARAlignment.UnityARAlignmentGravity,
 	            UnityARPlaneDetection planeDetection = UnityARPlaneDetection.Horizontal,
             bool getPointCloudData = false, 
-            bool enableLightEstimation = false)
+            bool enableLightEstimation = false,
+			string arResourceGroup = null)
 	    {
             this.getPointCloudData = getPointCloudData;
 	        this.alignment = alignment;
 	        this.planeDetection = planeDetection;
-            this.enableLightEstimation = enableLightEstimation;
+            this.enableLightEstimation = enableLightEstimation; 
+			this.arResourceGroupName = arResourceGroup;
 
 	    }
 
@@ -271,6 +274,16 @@ namespace UnityEngine.XR.iOS {
 		public delegate void ARFaceAnchorRemoved(ARFaceAnchor anchorData);
 		public static event ARFaceAnchorRemoved ARFaceAnchorRemovedEvent;
 
+		// Image Anchors
+		public delegate void ARImageAnchorAdded(ARImageAnchor anchorData);
+		public static event ARImageAnchorAdded ARImageAnchorAddedEvent;
+
+		public delegate void ARImageAnchorUpdated(ARImageAnchor anchorData);
+		public static event ARImageAnchorUpdated ARImageAnchorUpdatedEvent;
+
+		public delegate void ARImageAnchorRemoved(ARImageAnchor anchorData);
+		public static event ARImageAnchorRemoved ARImageAnchorRemovedEvent;
+
 		public delegate void ARSessionFailed(string error);
         public static event ARSessionFailed ARSessionFailedEvent;
 
@@ -293,6 +306,9 @@ namespace UnityEngine.XR.iOS {
 		public delegate void internal_ARFaceAnchorAdded(UnityARFaceAnchorData anchorData);
 		public delegate void internal_ARFaceAnchorUpdated(UnityARFaceAnchorData anchorData);
 		public delegate void internal_ARFaceAnchorRemoved(UnityARFaceAnchorData anchorData);
+		public delegate void internal_ARImageAnchorAdded(UnityARImageAnchorData anchorData);
+		public delegate void internal_ARImageAnchorUpdated(UnityARImageAnchorData anchorData);
+		public delegate void internal_ARImageAnchorRemoved(UnityARImageAnchorData anchorData);
         delegate void internal_ARSessionTrackingChanged(internal_UnityARCamera camera);
 
 #if !UNITY_EDITOR
@@ -321,6 +337,11 @@ namespace UnityEngine.XR.iOS {
         private static extern void session_SetUserAnchorCallbacks(IntPtr nativeSession, internal_ARUserAnchorAdded userAnchorAddedCallback, 
                                             internal_ARUserAnchorUpdated userAnchorUpdatedCallback, 
                                             internal_ARUserAnchorRemoved userAnchorRemovedCallback);
+
+		[DllImport("__Internal")]
+		private static extern void session_SetImageAnchorCallbacks(IntPtr nativeSession, internal_ARImageAnchorAdded imageAnchorAddedCallback, 
+			internal_ARImageAnchorUpdated imageAnchorUpdatedCallback, 
+			internal_ARImageAnchorRemoved imageAnchorRemovedCallback);
 
 		[DllImport("__Internal")]
 		private static extern void session_SetFaceAnchorCallbacks(IntPtr nativeSession, internal_ARFaceAnchorAdded faceAnchorAddedCallback, 
@@ -387,6 +408,7 @@ namespace UnityEngine.XR.iOS {
             session_SetPlaneAnchorCallbacks(m_NativeARSession, _anchor_added, _anchor_updated, _anchor_removed);
             session_SetUserAnchorCallbacks(m_NativeARSession, _user_anchor_added, _user_anchor_updated, _user_anchor_removed);
 			session_SetFaceAnchorCallbacks(m_NativeARSession, _face_anchor_added, _face_anchor_updated, _face_anchor_removed);
+			session_SetImageAnchorCallbacks(m_NativeARSession, _image_anchor_added, _image_anchor_updated, _image_anchor_removed);
 #endif
 	    }
 		
@@ -712,6 +734,39 @@ namespace UnityEngine.XR.iOS {
 		}
 		#endif
 #endregion
+
+#region Image Anchors
+		[MonoPInvokeCallback(typeof(internal_ARImageAnchorAdded))]
+		static void _image_anchor_added(UnityARImageAnchorData anchor)
+		{
+			if (ARImageAnchorAddedEvent != null)
+			{
+				ARImageAnchor arImageAnchor = new ARImageAnchor(anchor);
+				ARImageAnchorAddedEvent(arImageAnchor);
+			}
+		}
+
+		[MonoPInvokeCallback(typeof(internal_ARImageAnchorUpdated))]
+		static void _image_anchor_updated(UnityARImageAnchorData anchor)
+		{
+			if (ARImageAnchorUpdatedEvent != null)
+			{
+				ARImageAnchor arImageAnchor = new ARImageAnchor(anchor);
+				ARImageAnchorUpdatedEvent(arImageAnchor); 
+			}
+		}
+
+		[MonoPInvokeCallback(typeof(internal_ARImageAnchorRemoved))]
+		static void _image_anchor_removed(UnityARImageAnchorData anchor)
+		{
+			if (ARImageAnchorRemovedEvent != null)
+			{
+				ARImageAnchor arImageAnchor = new ARImageAnchor(anchor);
+				ARImageAnchorRemovedEvent(arImageAnchor); 
+			}
+		}
+#endregion
+
 
 	    [MonoPInvokeCallback(typeof(ARSessionFailed))]
 		static void _ar_session_failed(string error)
