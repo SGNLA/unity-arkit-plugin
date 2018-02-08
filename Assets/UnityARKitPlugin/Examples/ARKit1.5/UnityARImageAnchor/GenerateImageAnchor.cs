@@ -7,6 +7,9 @@ public class GenerateImageAnchor : MonoBehaviour {
 
 
 	[SerializeField]
+	private ARReferenceImage referenceImage;
+
+	[SerializeField]
 	private GameObject prefabToGenerate;
 
 	private GameObject imageAnchorGO;
@@ -22,18 +25,21 @@ public class GenerateImageAnchor : MonoBehaviour {
 	void AddImageAnchor(ARImageAnchor arImageAnchor)
 	{
 		Debug.Log ("image anchor added");
-		Vector3 position = UnityARMatrixOps.GetPosition (arImageAnchor.transform);
-		Quaternion rotation = UnityARMatrixOps.GetRotation (arImageAnchor.transform);
+		if (arImageAnchor.referenceImageName == referenceImage.imageName) {
+			Vector3 position = UnityARMatrixOps.GetPosition (arImageAnchor.transform);
+			Quaternion rotation = UnityARMatrixOps.GetRotation (arImageAnchor.transform);
 
-		imageAnchorGO = Instantiate<GameObject> (prefabToGenerate, position, rotation);
-
+			imageAnchorGO = Instantiate<GameObject> (prefabToGenerate, position, rotation);
+		}
 	}
 
 	void UpadteImageAnchor(ARImageAnchor arImageAnchor)
 	{
 		Debug.Log ("image anchor updated");
-		imageAnchorGO.transform.position = UnityARMatrixOps.GetPosition (arImageAnchor.transform);
-		imageAnchorGO.transform.rotation = UnityARMatrixOps.GetRotation (arImageAnchor.transform);
+		if (arImageAnchor.referenceImageName == referenceImage.imageName) {
+			imageAnchorGO.transform.position = UnityARMatrixOps.GetPosition (arImageAnchor.transform);
+			imageAnchorGO.transform.rotation = UnityARMatrixOps.GetRotation (arImageAnchor.transform);
+		}
 
 	}
 

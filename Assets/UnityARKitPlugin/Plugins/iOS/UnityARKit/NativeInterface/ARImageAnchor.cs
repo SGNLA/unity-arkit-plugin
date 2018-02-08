@@ -18,9 +18,10 @@ namespace UnityEngine.XR.iOS
 			 */
 		public UnityARMatrix4x4 transform;
 
-		public IntPtr referenceImagePtr;
+		public IntPtr referenceImageNamePtr;
 
-		public string identifierStr { get { return Marshal.PtrToStringAuto(this.ptrIdentifier); } }
+		public float referenceImagePhysicalSize;
+
 
 	};
 
@@ -36,7 +37,7 @@ namespace UnityEngine.XR.iOS
 		}
 
 
-		public string identifier { get { return imageAnchorData.identifierStr; } }
+		public string identifier { get { return Marshal.PtrToStringAuto(imageAnchorData.ptrIdentifier); } }
 
 		public Matrix4x4 transform { 
 			get { 
@@ -49,6 +50,9 @@ namespace UnityEngine.XR.iOS
 			}
 		}
 
+		public string referenceImageName { get { return Marshal.PtrToStringAuto(imageAnchorData.referenceImageNamePtr); } }
+
+		public float referenceImagePhysicalSize { get { return imageAnchorData.referenceImagePhysicalSize; } }
 	}
 
 }
