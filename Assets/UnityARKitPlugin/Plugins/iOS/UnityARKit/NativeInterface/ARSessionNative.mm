@@ -115,7 +115,8 @@ typedef struct
 {
     void* identifier;
     UnityARMatrix4x4 transform;
-    void* referenceImage;
+    void* referenceImageName;
+    float referenceImageSize;
 } UnityARImageAnchorData;
 
 
@@ -435,7 +436,8 @@ inline void UnityARImageAnchorDataFromARImageAnchorPtr(UnityARImageAnchorData& a
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
     ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
-    anchorData.referenceImage = (__bridge void*)nativeAnchor.referenceImage;
+    anchorData.referenceImageName = (void*)[nativeAnchor.referenceImage.name UTF8String];
+    anchorData.referenceImageSize = nativeAnchor.referenceImage.physicalSize.width;
 }
 
 inline void UnityLightDataFromARFrame(UnityLightData& lightData, ARFrame *arFrame)
