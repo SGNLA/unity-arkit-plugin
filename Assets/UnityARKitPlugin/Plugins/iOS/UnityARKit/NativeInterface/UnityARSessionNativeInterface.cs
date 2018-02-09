@@ -402,6 +402,10 @@ namespace UnityEngine.XR.iOS {
 		[DllImport("__Internal")]
 		private static extern void SessionRemoveUserAnchor (IntPtr nativeSession, [MarshalAs(UnmanagedType.LPStr)] string anchorIdentifier);
 
+		[DllImport("__Internal")]
+		private static extern void SessionSetWorldOrigin (IntPtr nativeSession, Matrix4x4 worldMatrix);
+
+
 		public UnityARSessionNativeInterface()
 		{
 #if !UNITY_EDITOR
@@ -934,5 +938,14 @@ namespace UnityEngine.XR.iOS {
             SessionRemoveUserAnchor(m_NativeARSession, anchorIdentifier);
 #endif
         }
+
+		public void SetWorldOrigin(Transform worldTransform)
+		{
+#if !UNITY_EDITOR
+			//convert from Unity coord system to ARKit
+			Matrix4x4 worldMatrix = UnityARMatrixOps.UnityToARKitCoordChange(worldTransform.position, worldTransform.rotation);
+			SessionSetWorldOrigin (m_NativeARSession, worldMatrix);
+#endif
+		}
 	}
 }
