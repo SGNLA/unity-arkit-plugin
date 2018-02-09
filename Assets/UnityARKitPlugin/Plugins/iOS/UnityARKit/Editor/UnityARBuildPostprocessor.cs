@@ -105,7 +105,7 @@ public class UnityARBuildPostprocessor
 		string folderToCreate = arri.imageName + ".arreferenceimage";
 		string folderFullPath = Path.Combine (parentFolderFullPath, folderToCreate);
 		string projectRelativeFolder = Path.Combine (projectRelativePath, folderToCreate);
-		DirectoryInfo di = Directory.CreateDirectory (folderFullPath);
+		Directory.CreateDirectory (folderFullPath);
 		project.AddFolderReference (folderFullPath, projectRelativeFolder);
 
 		//copy file from texture asset
@@ -132,7 +132,7 @@ public class UnityARBuildPostprocessor
 		groupContents.info.version = 1;
 		string folderToCreate = "Unity-iPhone/Images.xcassets/" + aris.resourceGroupName + ".arresourcegroup";
 		string folderFullPath = Path.Combine (pathToBuiltProject, folderToCreate);
-		DirectoryInfo di = Directory.CreateDirectory (folderFullPath);
+		Directory.CreateDirectory (folderFullPath);
 		project.AddFolderReference (folderFullPath, folderToCreate);
 		foreach (ARReferenceImage arri in aris.referenceImages) {
 			if (!processedImages.Contains (arri)) {

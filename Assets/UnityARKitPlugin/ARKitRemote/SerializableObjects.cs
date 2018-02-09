@@ -617,23 +617,25 @@ namespace Utils
 		public UnityARPlaneDetection planeDetection;
 		public bool getPointCloudData;
 		public bool enableLightEstimation;
+		public bool enableAutoFocus;
 
-		public serializableARSessionConfiguration(UnityARAlignment align, UnityARPlaneDetection planeDet, bool getPtCloud, bool enableLightEst)
+		public serializableARSessionConfiguration(UnityARAlignment align, UnityARPlaneDetection planeDet, bool getPtCloud, bool enableLightEst, bool enableAutoFoc)
 		{
 			alignment = align;
 			planeDetection = planeDet;
 			getPointCloudData = getPtCloud;
 			enableLightEstimation = enableLightEst;
+			enableAutoFocus = enableAutoFoc;
 		}
 
 		public static implicit operator serializableARSessionConfiguration(ARKitWorldTrackingSessionConfiguration awtsc)
 		{
-			return new serializableARSessionConfiguration (awtsc.alignment, awtsc.planeDetection, awtsc.getPointCloudData, awtsc.enableLightEstimation);
+			return new serializableARSessionConfiguration (awtsc.alignment, awtsc.planeDetection, awtsc.getPointCloudData, awtsc.enableLightEstimation, awtsc.enableAutoFocus);
 		}
 
 		public static implicit operator ARKitWorldTrackingSessionConfiguration (serializableARSessionConfiguration sasc)
 		{
-			return new ARKitWorldTrackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation, null);
+			return new ARKitWorldTrackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation, sasc.enableAutoFocus, null);
 		}
 
 		public static implicit operator ARKitFaceTrackingConfiguration (serializableARSessionConfiguration sasc)

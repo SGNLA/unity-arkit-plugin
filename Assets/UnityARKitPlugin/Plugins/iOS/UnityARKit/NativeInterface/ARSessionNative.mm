@@ -46,6 +46,7 @@ typedef struct
     UnityARPlaneDetection planeDetection;
     uint32_t getPointCloudData;
     uint32_t enableLightEstimation;
+    uint32_t enableAutoFocus;
     char *arResourceGroup;
 } ARKitWorldTrackingSessionConfiguration;
 
@@ -298,6 +299,7 @@ inline void GetARSessionConfigurationFromARKitWorldTrackingSessionConfiguration(
     appleConfig.planeDetection = GetARPlaneDetectionFromUnityARPlaneDetection(unityConfig.planeDetection);
     appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
+    appleConfig.autoFocusEnabled = (BOOL) unityConfig.enableAutoFocus;
 }
 
 inline void GetARSessionConfigurationFromARKitSessionConfiguration(ARKitSessionConfiguration& unityConfig, ARConfiguration* appleConfig)

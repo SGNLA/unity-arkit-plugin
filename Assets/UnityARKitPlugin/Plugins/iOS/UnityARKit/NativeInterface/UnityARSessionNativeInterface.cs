@@ -176,6 +176,7 @@ namespace UnityEngine.XR.iOS {
 	    public UnityARPlaneDetection planeDetection;
         public bool getPointCloudData;
         public bool enableLightEstimation;
+		public bool enableAutoFocus;
 		public string arResourceGroupName;
 		public bool IsSupported { get { return IsARKitWorldTrackingSessionConfigurationSupported(); } private set {} }
 
@@ -183,12 +184,14 @@ namespace UnityEngine.XR.iOS {
 	            UnityARPlaneDetection planeDetection = UnityARPlaneDetection.Horizontal,
             bool getPointCloudData = false, 
             bool enableLightEstimation = false,
+			bool enableAutoFocus = true,
 			string arResourceGroup = null)
 	    {
             this.getPointCloudData = getPointCloudData;
 	        this.alignment = alignment;
 	        this.planeDetection = planeDetection;
             this.enableLightEstimation = enableLightEstimation; 
+			this.enableAutoFocus = enableAutoFocus;
 			this.arResourceGroupName = arResourceGroup;
 
 	    }
