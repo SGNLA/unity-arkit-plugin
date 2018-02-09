@@ -341,6 +341,30 @@ inline void ARKitMatrixToUnityARMatrix4x4(const matrix_float4x4& matrixIn, Unity
     matrixOut->column3.w = c3.w;
 }
 
+inline void UnityARMatrix4x4ToARKitMatrix(const UnityARMatrix4x4& matrixIn, matrix_float4x4* matrixOut)
+{
+    matrixOut->columns[0].x = matrixIn.column0.x;
+    matrixOut->columns[0].y = matrixIn.column0.y;
+    matrixOut->columns[0].z = matrixIn.column0.z;
+    matrixOut->columns[0].w = matrixIn.column0.w;
+    
+    matrixOut->columns[1].x = matrixIn.column1.x;
+    matrixOut->columns[1].y = matrixIn.column1.y;
+    matrixOut->columns[1].z = matrixIn.column1.z;
+    matrixOut->columns[1].w = matrixIn.column1.w;
+    
+    matrixOut->columns[2].x = matrixIn.column2.x;
+    matrixOut->columns[2].y = matrixIn.column2.y;
+    matrixOut->columns[2].z = matrixIn.column2.z;
+    matrixOut->columns[2].w = matrixIn.column2.w;
+    
+    matrixOut->columns[3].x = matrixIn.column3.x;
+    matrixOut->columns[3].y = matrixIn.column3.y;
+    matrixOut->columns[3].z = matrixIn.column3.z;
+    matrixOut->columns[3].w = matrixIn.column3.w;
+    
+}
+
 
 static inline void GetUnityARCameraDataFromCamera(UnityARCamera& unityARCamera, ARCamera* camera, BOOL getPointCloudData)
 {
@@ -1118,6 +1142,14 @@ extern "C" void SessionRemoveUserAnchor(void* nativeSession, const char * anchor
             return;
         }
     }
+}
+
+extern "C" void SessionSetWorldOrigin(void* nativeSession, UnityARMatrix4x4 worldMatrix)
+{
+    UnityARSession* session = (__bridge UnityARSession*)nativeSession;
+    matrix_float4x4 arWorldMatrix;
+    UnityARMatrix4x4ToARKitMatrix(worldMatrix, &arWorldMatrix);
+    [session->_session setWorldOrigin:arWorldMatrix];
 }
 
 extern "C" void SetCameraNearFar (float nearZ, float farZ)
