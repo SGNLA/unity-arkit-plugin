@@ -635,7 +635,7 @@ namespace Utils
 
 		public static implicit operator ARKitWorldTrackingSessionConfiguration (serializableARSessionConfiguration sasc)
 		{
-			return new ARKitWorldTrackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation, sasc.enableAutoFocus, null);
+			return new ARKitWorldTrackingSessionConfiguration (sasc.alignment, sasc.planeDetection, sasc.getPointCloudData, sasc.enableLightEstimation, sasc.enableAutoFocus);
 		}
 
 		public static implicit operator ARKitFaceTrackingConfiguration (serializableARSessionConfiguration sasc)

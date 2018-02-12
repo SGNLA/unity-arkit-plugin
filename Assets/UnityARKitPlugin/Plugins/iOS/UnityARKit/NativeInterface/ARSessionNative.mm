@@ -47,6 +47,7 @@ typedef struct
     uint32_t getPointCloudData;
     uint32_t enableLightEstimation;
     uint32_t enableAutoFocus;
+    void *ptrVideoFormat;
     char *arResourceGroup;
 } ARKitWorldTrackingSessionConfiguration;
 
@@ -198,6 +199,13 @@ typedef struct
     BOOL bEnable;
 }UnityPixelBuffer;
 
+typedef struct
+{
+    void* ptrVideoFormat;
+    float imageResolutionWidth;
+    float imageResolutionHeight;
+    int framesPerSecond;
+}UnityARVideoFormat;
 
 
 typedef void (*UNITY_AR_FRAME_CALLBACK)(UnityARCamera camera);
@@ -209,6 +217,7 @@ typedef void (*UNITY_AR_SESSION_FAILED_CALLBACK)(const void* error);
 typedef void (*UNITY_AR_SESSION_VOID_CALLBACK)(void);
 typedef bool (*UNITY_AR_SESSION_RELOCALIZE_CALLBACK)(void);
 typedef void (*UNITY_AR_SESSION_TRACKING_CHANGED)(UnityARCamera camera);
+typedef void (*UNITY_AR_VIDEOFORMAT_CALLBACK)(UnityARVideoFormat format);
 
 // These don't all need to be static data, but no other better place for them at the moment.
 static id <MTLTexture> s_CapturedImageTextureY;
@@ -300,6 +309,10 @@ inline void GetARSessionConfigurationFromARKitWorldTrackingSessionConfiguration(
     appleConfig.worldAlignment = GetARWorldAlignmentFromUnityARAlignment(unityConfig.alignment);
     appleConfig.lightEstimationEnabled = (BOOL)unityConfig.enableLightEstimation;
     appleConfig.autoFocusEnabled = (BOOL) unityConfig.enableAutoFocus;
+    if (unityConfig.ptrVideoFormat != NULL)
+    {
+        appleConfig.videoFormat = (__bridge ARVideoFormat*) unityConfig.ptrVideoFormat;
+    }
 }
 
 inline void GetARSessionConfigurationFromARKitSessionConfiguration(ARKitSessionConfiguration& unityConfig, ARConfiguration* appleConfig)
@@ -1265,6 +1278,19 @@ extern "C" bool IsARKitWorldTrackingSessionConfigurationSupported()
 extern "C" bool IsARKitSessionConfigurationSupported()
 {
     return AROrientationTrackingConfiguration.isSupported;
+}
+
+extern "C" void EnumerateVideoFormats(UNITY_AR_VIDEOFORMAT_CALLBACK videoFormatCallback)
+{
+    for(ARVideoFormat* arVideoFormat in ARWorldTrackingConfiguration.supportedVideoFormats)
+    {
+        UnityARVideoFormat videoFormat;
+        videoFormat.ptrVideoFormat = (__bridge void *)arVideoFormat;
+        videoFormat.imageResolutionWidth = arVideoFormat.imageResolution.width;
+        videoFormat.imageResolutionHeight = arVideoFormat.imageResolution.height;
+        videoFormat.framesPerSecond = arVideoFormat.framesPerSecond;
+        videoFormatCallback(videoFormat);
+    }
 }
 
 extern "C" bool IsARKitFaceTrackingConfigurationSupported()
