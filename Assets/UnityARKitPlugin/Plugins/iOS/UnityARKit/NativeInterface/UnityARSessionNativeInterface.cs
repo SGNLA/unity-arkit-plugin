@@ -177,6 +177,7 @@ namespace UnityEngine.XR.iOS {
         public bool getPointCloudData;
         public bool enableLightEstimation;
 		public bool enableAutoFocus;
+		public IntPtr videoFormat;
 		public string arResourceGroupName;
 		public bool IsSupported { get { return IsARKitWorldTrackingSessionConfigurationSupported(); } private set {} }
 
@@ -185,6 +186,7 @@ namespace UnityEngine.XR.iOS {
             bool getPointCloudData = false, 
             bool enableLightEstimation = false,
 			bool enableAutoFocus = true,
+			IntPtr vidFormat = default(IntPtr),
 			string arResourceGroup = null)
 	    {
             this.getPointCloudData = getPointCloudData;
@@ -192,9 +194,11 @@ namespace UnityEngine.XR.iOS {
 	        this.planeDetection = planeDetection;
             this.enableLightEstimation = enableLightEstimation; 
 			this.enableAutoFocus = enableAutoFocus;
+			this.videoFormat = vidFormat;
 			this.arResourceGroupName = arResourceGroup;
 
 	    }
+
 
 
 		#if UNITY_EDITOR
