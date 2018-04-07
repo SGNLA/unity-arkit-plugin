@@ -4,7 +4,7 @@ using UnityEngine.XR.iOS;
 using System.Text;
 using System.Collections.Generic;
 
-namespace Utils
+namespace UnityEngine.XR.iOS.Utils
 {
 	/// <summary>
 	/// Since unity doesn't flag the Vector4 as serializable, we

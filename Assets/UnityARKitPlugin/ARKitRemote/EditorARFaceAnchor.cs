@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
-using Utils;
+using UnityEngine.XR.iOS.Utils;
 
 
 namespace UnityEngine.XR.iOS
