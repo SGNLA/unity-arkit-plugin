@@ -462,7 +462,7 @@ namespace UnityEngine.XR.iOS
             return s_UnityARSessionNativeInterface;
         }
 
-#if UNITY_EDITOR || !UNITY_IOS
+#if UNITY_EDITOR 
         public static void SetStaticCamera(UnityARCamera scamera)
         {
             s_Camera = scamera;
@@ -856,7 +856,7 @@ namespace UnityEngine.XR.iOS
         {
 #if !UNITY_EDITOR && UNITY_IOS
             StartWorldTrackingSessionWithOptions (m_NativeARSession, config, runOptions);
-#else
+#elif UNITY_EDITOR
             CreateRemoteWorldTrackingConnection(config, runOptions);
 #endif
         }
@@ -865,7 +865,7 @@ namespace UnityEngine.XR.iOS
         {
 #if !UNITY_EDITOR && UNITY_IOS
 	        StartWorldTrackingSession(m_NativeARSession, config);
-#else
+#elif UNITY_EDITOR
             UnityARSessionRunOption runOptions = UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors | UnityARSessionRunOption.ARSessionRunOptionResetTracking;
             CreateRemoteWorldTrackingConnection(config, runOptions);
 #endif
@@ -894,7 +894,7 @@ namespace UnityEngine.XR.iOS
         {
 #if !UNITY_EDITOR && UNITY_IOS
 			StartFaceTrackingSessionWithOptions (m_NativeARSession, config, runOptions);
-#else
+#elif UNITY_EDITOR
             CreateRemoteFaceTrackingConnection(config, runOptions);
 #endif
         }
@@ -903,7 +903,7 @@ namespace UnityEngine.XR.iOS
         {
 #if !UNITY_EDITOR && UNITY_IOS
 			StartFaceTrackingSession(m_NativeARSession, config);
-#else
+#elif UNITY_EDITOR
             UnityARSessionRunOption runOptions = UnityARSessionRunOption.ARSessionRunOptionRemoveExistingAnchors | UnityARSessionRunOption.ARSessionRunOptionResetTracking;
             CreateRemoteFaceTrackingConnection(config, runOptions);
 #endif
