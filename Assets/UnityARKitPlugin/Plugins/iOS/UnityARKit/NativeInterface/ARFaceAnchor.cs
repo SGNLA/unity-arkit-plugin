@@ -201,7 +201,10 @@ namespace UnityEngine.XR.iOS
 		{
 			get
 			{
-				return UnityARMatrixOps.GetPose(faceAnchorData.leftEyeTransform);
+				Matrix4x4 anchorMat = UnityARMatrixOps.GetMatrix (faceAnchorData.transform);
+				Matrix4x4 eyeMat = UnityARMatrixOps.GetMatrix (faceAnchorData.leftEyeTransform);
+				Matrix4x4 worldEyeMat = anchorMat * eyeMat;
+				return UnityARMatrixOps.GetPose(worldEyeMat);
 			}
 		}
 
@@ -209,7 +212,10 @@ namespace UnityEngine.XR.iOS
 		{
 			get
 			{
-				return UnityARMatrixOps.GetPose(faceAnchorData.rightEyeTransform);
+				Matrix4x4 anchorMat = UnityARMatrixOps.GetMatrix (faceAnchorData.transform);
+				Matrix4x4 eyeMat = UnityARMatrixOps.GetMatrix (faceAnchorData.rightEyeTransform);
+				Matrix4x4 worldEyeMat = anchorMat * eyeMat;
+				return UnityARMatrixOps.GetPose(worldEyeMat);
 			}
 		}
 
@@ -217,7 +223,8 @@ namespace UnityEngine.XR.iOS
 		{
 			get
 			{
-				return UnityARMatrixOps.GetPosition(faceAnchorData.lookAtPoint);
+				Matrix4x4 anchorMat = UnityARMatrixOps.GetMatrix (faceAnchorData.transform);
+				return anchorMat.MultiplyPoint3x4 (UnityARMatrixOps.GetPosition (faceAnchorData.lookAtPoint));
 			}
 		}
 
