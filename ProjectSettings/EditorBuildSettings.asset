@@ -38,3 +38,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/UnityARKitPlugin/Examples/FaceTracking/FaceDirectionalLightEstimate.unity
     guid: 360fd35caee4f4e069485021a27c0b06
+  - enabled: 0
+    path: Assets/UnityARKitPlugin/Examples/ARKit2.0/UnityARWorldMap/UnityARWorldMap.unity
+    guid: ee2777dc048a5482db055433cf94aa0e
+  - enabled: 0
+    path: Assets/UnityARKitPlugin/Examples/ARKit2.0/UnityARWorldMap/UnityARWorldMapSerialized.unity
+    guid: 5886c251920f2454b98358e6027f37df
+  - enabled: 0
+    path: Assets/UnityARKitPlugin/Examples/ARKit2.0/UnityARObjectAnchor/UnityARObjectAnchor.unity
+    guid: 9b7966300d2d04d8e86ace41d59d178c
