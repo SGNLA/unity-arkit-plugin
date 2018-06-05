@@ -1,6 +1,6 @@
 # Unity-ARKit-Plugin #
 
-[**Latest Update:** This plugin now supports new ARKit functionality exposed in ARKit 1.5 update.  See this [blog post](https://blogs.unity3d.com/2018/02/16/developing-for-arkit-1-5-update-using-unity-arkit-plugin/) for details.]
+[**Latest Update:** This plugin now supports new ARKit functionality exposed in ARKit 2.0 Beta.  See [Whats New In ARKit 2.0](./docs/WhatsNewInARKit2_0.md) for details.]
 
 This is a native [Unity](https://unity3d.com/) plugin that exposes the functionality of Apple’s
 [ARKit SDK](https://developer.apple.com/arkit/) to your Unity projects for compatible iOS devices.  Includes ARKit features such as world tracking, pass-through camera rendering, horizontal and vertical plane detection and
@@ -158,6 +158,9 @@ As newer features have been added on to the plugin, they have been documented in
 
 Unity blog post ["Developing for ARKit 1.5 update using Unity ARKit Plugin"](https://blogs.unity3d.com/2018/02/16/developing-for-arkit-1-5-update-using-unity-arkit-plugin/)
 
+### ARKit 2.0 Beta Update ###
+
+How to use new features from Unity: [Whats New In ARKit 2.0](./docs/WhatsNewInARKit2_0.md)
 
 ## Questions?  Bugs? Showcase? ##
 
