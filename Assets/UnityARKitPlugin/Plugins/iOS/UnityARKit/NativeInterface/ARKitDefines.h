@@ -142,6 +142,9 @@ typedef struct
     UnityARMatrix4x4 transform;
     UnityARFaceGeometry faceGeometry;
     void *blendShapes;  //NSDictionary<ARBlendShapeLocation, NSNumber*> *
+    UnityARMatrix4x4 leftEyeTransform;
+    UnityARMatrix4x4 rightEyeTransform;
+    UnityARVector3 lookAtPoint;
 } UnityARFaceAnchorData;
 
 typedef struct

@@ -222,6 +222,9 @@ inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anch
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
     ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
+    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.leftEyeTransform, &anchorData.leftEyeTransform);
+    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.rightEyeTransform, &anchorData.rightEyeTransform);
+    anchorData.lookAtPoint = UnityARVector3{nativeAnchor.lookAtPoint.x, nativeAnchor.lookAtPoint.y, nativeAnchor.lookAtPoint.z};
     UnityARFaceGeometryFromARFaceGeometry(anchorData.faceGeometry, nativeAnchor.geometry);
     anchorData.blendShapes = (__bridge void *) nativeAnchor.blendShapes;
 }

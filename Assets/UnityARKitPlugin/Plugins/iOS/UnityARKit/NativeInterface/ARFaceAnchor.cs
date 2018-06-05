@@ -62,6 +62,7 @@ namespace UnityEngine.XR.iOS
 		 public const string  MouthUpperUpRight   =   "mouthUpperUp_R";
 		 public const string  NoseSneerLeft       =   "noseSneer_L";
 		 public const string  NoseSneerRight      =   "noseSneer_R";
+		 public const string  TongueOut           =   "tongueOut";
 	}
 
 
@@ -90,8 +91,10 @@ namespace UnityEngine.XR.iOS
 
 		public UnityARFaceGeometry faceGeometry;
 		public IntPtr blendShapes;
-
-	};
+		public UnityARMatrix4x4 leftEyeTransform;
+		public UnityARMatrix4x4 rightEyeTransform;
+		public Vector3 lookAtPoint;
+	}
 
 	#if !UNITY_EDITOR && UNITY_IOS
 	public class ARFaceGeometry
@@ -191,6 +194,30 @@ namespace UnityEngine.XR.iOS
 				matrix.SetColumn (2, faceAnchorData.transform.column2);
 				matrix.SetColumn (3, faceAnchorData.transform.column3);
 				return matrix;
+			}
+		}
+
+		public Pose leftEyePose
+		{
+			get
+			{
+				return UnityARMatrixOps.GetPose(faceAnchorData.leftEyeTransform);
+			}
+		}
+
+		public Pose rightEyePose
+		{
+			get
+			{
+				return UnityARMatrixOps.GetPose(faceAnchorData.rightEyeTransform);
+			}
+		}
+
+		public Vector3 lookAtPoint
+		{
+			get
+			{
+				return UnityARMatrixOps.GetPosition(faceAnchorData.lookAtPoint);
 			}
 		}
 
