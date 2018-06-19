@@ -222,9 +222,13 @@ inline void UnityARFaceAnchorDataFromARFaceAnchorPtr(UnityARFaceAnchorData& anch
 {
     anchorData.identifier = (void*)[nativeAnchor.identifier.UUIDString UTF8String];
     ARKitMatrixToUnityARMatrix4x4(nativeAnchor.transform, &anchorData.transform);
-    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.leftEyeTransform, &anchorData.leftEyeTransform);
-    ARKitMatrixToUnityARMatrix4x4(nativeAnchor.rightEyeTransform, &anchorData.rightEyeTransform);
-    anchorData.lookAtPoint = UnityARVector3{nativeAnchor.lookAtPoint.x, nativeAnchor.lookAtPoint.y, nativeAnchor.lookAtPoint.z};
+    if (UnityIsARKit_2_0_Supported())
+    {
+        ARKitMatrixToUnityARMatrix4x4(nativeAnchor.leftEyeTransform, &anchorData.leftEyeTransform);
+        ARKitMatrixToUnityARMatrix4x4(nativeAnchor.rightEyeTransform, &anchorData.rightEyeTransform);
+        anchorData.lookAtPoint = UnityARVector3{nativeAnchor.lookAtPoint.x, nativeAnchor.lookAtPoint.y, nativeAnchor.lookAtPoint.z};
+    }
+
     UnityARFaceGeometryFromARFaceGeometry(anchorData.faceGeometry, nativeAnchor.geometry);
     anchorData.blendShapes = (__bridge void *) nativeAnchor.blendShapes;
 }
@@ -484,7 +488,10 @@ static CGAffineTransform s_CurAffineTransform;
     UnityARMatrix4x4FromCGAffineTransform(displayTransform, s_CurAffineTransform, UIInterfaceOrientationIsLandscape(orientation));
     unityARCamera.displayTransform = displayTransform;
     
-    unityARCamera.worldMappingStatus = GetUnityARWorldMappingStatusFromARWorldMappingStatus(frame.worldMappingStatus);
+    if (UnityIsARKit_2_0_Supported())
+    {
+        unityARCamera.worldMappingStatus = GetUnityARWorldMappingStatusFromARWorldMappingStatus(frame.worldMappingStatus);
+    }
 
     if (_frameCallback != NULL)
     {
